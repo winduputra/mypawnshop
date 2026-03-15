@@ -1,6 +1,47 @@
 <x-app-layout>
     @section('header_title', 'Buat Transaksi Rahn')
 
+    @push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <style>
+        .ts-control {
+            background: rgba(30, 41, 59, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 0.75rem !important;
+            color: white !important;
+            padding: 0.75rem 1rem !important;
+        }
+        .ts-dropdown {
+            background: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 0.75rem !important;
+            margin-top: 5px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+        }
+        .ts-dropdown .option {
+            padding: 10px 15px !important;
+        }
+        .ts-dropdown .active {
+            background: #38bdf8 !important;
+            color: white !important;
+        }
+        .ts-dropdown .create {
+            display: none !important;
+        }
+        .ts-control input {
+            color: white !important;
+        }
+        .ts-wrapper.single .ts-control {
+            padding-right: 2rem !important;
+        }
+        .ts-wrapper.single .ts-control::after {
+            border-color: #94a3b8 transparent transparent transparent !important;
+            right: 15px !important;
+        }
+    </style>
+    @endpush
+
     @section('content')
     <div class="max-w-5xl mx-auto">
         <a href="{{ route('transaksi.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center mb-6">
@@ -19,7 +60,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-slate-400 mb-2">Pilih Nasabah</label>
-                                <select name="nasabah_id" id="nasabahSelect" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                                <select name="nasabah_id" id="nasabahSelect" class="w-full" required>
                                     <option value="">-- Pilih Nasabah --</option>
                                     @foreach($nasabahs as $nasabah)
                                         <option value="{{ $nasabah->id }}" data-barang='@json($nasabah->barang)'>{{ $nasabah->nik }} - {{ $nasabah->nama }}</option>
@@ -157,4 +198,24 @@
         }
     </script>
     @endsection
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script>
+        var ts = new TomSelect("#nasabahSelect", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            },
+            placeholder: "-- Pilih Nasabah --",
+            allowEmptyOption: true,
+        });
+
+        // Trigger the original change event when Tom Select changes
+        ts.on('change', function() {
+            document.getElementById('nasabahSelect').dispatchEvent(new Event('change'));
+        });
+    </script>
+    @endpush
 </x-app-layout>

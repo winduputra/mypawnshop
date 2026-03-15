@@ -59,6 +59,7 @@
             }
         </style>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @stack('styles')
     </head>
     <body class="font-sans antialiased bg-[#0f172a] text-slate-200">
         <div class="min-h-screen flex">
@@ -122,5 +123,6 @@
                 @yield('content')
             </main>
         </div>
+        @stack('scripts')
     </body>
 </html>
