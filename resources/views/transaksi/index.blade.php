@@ -3,67 +3,75 @@
 
     @section('content')
     <div class="mb-6 flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-white">Daftar Gadai Aktif</h3>
+        <h3 class="text-lg font-semibold text-white">Daftar Gadai</h3>
         <a href="{{ route('transaksi.create') }}" class="btn-gradient">
             Transaksi Baru
         </a>
     </div>
 
-    <div class="glass-card overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="text-xs font-semibold text-slate-500 uppercase bg-white/5">
-                        <th class="px-6 py-4">No. Transaksi</th>
-                        <th class="px-6 py-4">Nasabah</th>
-                        <th class="px-6 py-4">Pinjaman</th>
-                        <th class="px-6 py-4">Jatuh Tempo</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-white/5 text-sm">
-                    @forelse($transactions as $trx)
-                    <tr class="hover:bg-white/5 transition-colors">
-                        <td class="px-6 py-4 font-mono text-sky-400 font-bold">{{ $trx->no_transaksi }}</td>
-                        <td class="px-6 py-4">
-                            <div class="text-white font-medium">{{ $trx->nasabah->nama }}</div>
-                            <div class="text-xs text-slate-500">{{ $trx->nasabah->nik }}</div>
-                        </td>
-                        <td class="px-6 py-4 text-white">
-                            <span class="block">Rp {{ number_format($trx->total_pinjaman, 0, ',', '.') }}</span>
-                            <span class="text-xs text-slate-500">Ujrah: {{ number_format($trx->ujrah_per_30hari, 0, ',', '.') }}/30hr</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="block text-white">{{ $trx->tanggal_jatuh_tempo }}</span>
-                            <span class="text-xs text-rose-400">Lelang: {{ $trx->tanggal_batas_lelang }}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium 
-                                @if($trx->status == 'aktif') bg-sky-500/10 text-sky-400 
-                                @elseif($trx->status == 'lunas') bg-emerald-500/10 text-emerald-400 
-                                @elseif($trx->status == 'lelang') bg-rose-500/10 text-rose-400
-                                @else bg-indigo-500/10 text-indigo-400 @endif">
-                                {{ ucfirst($trx->status) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="{{ route('transaksi.show', $trx) }}" class="text-sky-400 hover:text-sky-300 font-medium">Buka</a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada transaksi rahn</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <!-- Filter Bar -->
+    <div class="glass-card p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Cari Nama / No. Kontrak</label>
+                <input type="text" id="filterSearch" placeholder="Ketik untuk mencari..."
+                    class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Status</label>
+                <select id="filterStatus" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                    <option value="">Semua Status</option>
+                    <option value="aktif">Aktif</option>
+                    <option value="diperpanjang">Diperpanjang</option>
+                    <option value="lunas">Lunas</option>
+                    <option value="lelang">Lelang</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Jatuh Tempo</label>
+                <select id="filterJatuhTempo" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                    <option value="">Semua</option>
+                    <option value="segera">Segera (≤ 7 hari)</option>
+                    <option value="lewat">Sudah Lewat</option>
+                </select>
+            </div>
         </div>
-        @if($transactions->hasPages())
-        <div class="p-6 border-t border-white/5">
-            {{ $transactions->links() }}
-        </div>
-        @endif
     </div>
+
+    <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto" id="tableContainer">
+            @include('transaksi._table')
+        </div>
+    </div>
+
+    <script>
+        let debounceTimer;
+        const filterSearch = document.getElementById('filterSearch');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterJatuhTempo = document.getElementById('filterJatuhTempo');
+
+        function fetchFiltered() {
+            const params = new URLSearchParams();
+            if (filterSearch.value) params.set('search', filterSearch.value);
+            if (filterStatus.value) params.set('status', filterStatus.value);
+            if (filterJatuhTempo.value) params.set('jatuh_tempo', filterJatuhTempo.value);
+
+            fetch(`{{ route('transaksi.index') }}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('tableContainer').innerHTML = html;
+            });
+        }
+
+        filterSearch.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchFiltered, 300);
+        });
+
+        filterStatus.addEventListener('change', fetchFiltered);
+        filterJatuhTempo.addEventListener('change', fetchFiltered);
+    </script>
     @endsection
 </x-app-layout>

@@ -11,7 +11,7 @@
         <div class="glass-card p-8">
             <h3 class="text-xl font-bold text-white mb-6">Edit Data Barang Jaminan</h3>
 
-            <form action="{{ route('barang.update', $barang) }}" method="POST" class="space-y-6">
+            <form action="{{ route('barang.update', $barang) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -38,19 +38,45 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Berat / Satuan</label>
-                        <input type="number" step="0.01" name="berat" value="{{ old('berat', $barang->berat) }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Nilai Taksiran (Rp)</label>
-                        <input type="number" name="taksiran" value="{{ old('taksiran', $barang->taksiran) }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500 text-xl font-bold" required>
-                    </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-400 mb-2">Deskripsi / Kondisi Barang</label>
                         <textarea name="deskripsi" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">{{ old('deskripsi', $barang->deskripsi) }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @php
+                            $foto1 = $barang->fotoBarang->where('keterangan', 'Foto 1')->first();
+                            $foto2 = $barang->fotoBarang->where('keterangan', 'Foto 2')->first();
+                            $foto3 = $barang->fotoBarang->where('keterangan', 'Foto 3')->first();
+                        @endphp
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 1</label>
+                            @if($foto1)
+                                <div class="mb-3">
+                                    <img src="{{ asset('storage/' . $foto1->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 1">
+                                </div>
+                            @endif
+                            <input type="file" name="foto_1" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                            <p class="text-[10px] text-slate-500 mt-1">Isi untuk mengganti foto lama.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 2</label>
+                            @if($foto2)
+                                <div class="mb-3">
+                                    <img src="{{ asset('storage/' . $foto2->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 2">
+                                </div>
+                            @endif
+                            <input type="file" name="foto_2" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 3</label>
+                            @if($foto3)
+                                <div class="mb-3">
+                                    <img src="{{ asset('storage/' . $foto3->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 3">
+                                </div>
+                            @endif
+                            <input type="file" name="foto_3" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                        </div>
                     </div>
                 </div>
 

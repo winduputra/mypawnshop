@@ -7,7 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Nasabah extends Model
 {
     protected $table = 'nasabah';
-    protected $fillable = ['nik', 'nama', 'alamat', 'telepon', 'foto_ktp'];
+    protected $fillable = ['nik', 'nama', 'email', 'alamat', 'telepon', 'foto_ktp', 'foto', 'nama_bank', 'no_rekening'];
+
+    public function getWhatsappNumberAttribute()
+    {
+        $phone = $this->telepon;
+        if (str_starts_with($phone, '0')) {
+            return '62' . substr($phone, 1);
+        }
+        return $phone;
+    }
 
     public function barang()
     {

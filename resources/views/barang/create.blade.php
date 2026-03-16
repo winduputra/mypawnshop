@@ -79,10 +79,7 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Berat / Satuan</label>
-                        <input type="number" step="0.01" name="berat" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" placeholder="0.00">
-                    </div>
+
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-400 mb-2">Nilai Taksiran (Rp)</label>
@@ -95,9 +92,22 @@
                         <textarea name="deskripsi" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" placeholder="Detail kondisi, kelengkapan, dll."></textarea>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang</label>
-                        <input type="file" name="fotos[]" multiple class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 1 <span class="text-rose-400">*</span></label>
+                            <input type="file" name="foto_1" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
+                            <p class="text-[10px] text-slate-500 mt-1">Wajib diunggah. Max 2MB.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 2</label>
+                            <input type="file" name="foto_2" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                            <p class="text-[10px] text-slate-500 mt-1">Opsional. Max 2MB.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 3</label>
+                            <input type="file" name="foto_3" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                            <p class="text-[10px] text-slate-500 mt-1">Opsional. Max 2MB.</p>
+                        </div>
                     </div>
                 </div>
 

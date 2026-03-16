@@ -6,7 +6,7 @@
         <div class="w-full md:w-1/3">
             <form action="{{ route('nasabah.index') }}" method="GET" class="relative">
                 <input type="text" name="search" value="{{ request('search') }}" 
-                       placeholder="Cari nama atau NIK..." 
+                       placeholder="Cari NIK, nama, telepon, atau email..." 
                        class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:border-sky-500 transition-all">
                 <button type="submit" class="absolute right-3 top-2 text-slate-500 hover:text-sky-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>

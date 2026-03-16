@@ -9,7 +9,8 @@ class TransaksiRahn extends Model
     protected $table = 'transaksi_rahn';
     protected $fillable = [
         'no_transaksi', 'nasabah_id', 'user_id', 'tanggal_transaksi', 
-        'total_taksiran', 'total_pinjaman', 'biaya_admin', 
+        'total_taksiran', 'total_pinjaman', 'sisa_pinjaman', 'biaya_admin', 
+        'biaya_penitipan', 'metode_pembayaran',
         'ujrah_per_30hari', 'tenor_hari', 'tanggal_jatuh_tempo', 
         'tanggal_batas_lelang', 'status'
     ];
@@ -42,5 +43,10 @@ class TransaksiRahn extends Model
     public function lelang()
     {
         return $this->hasOne(Lelang::class);
+    }
+
+    public function angsuran()
+    {
+        return $this->hasMany(Angsuran::class);
     }
 }

@@ -35,9 +35,7 @@
                         @else bg-indigo-500/10 text-indigo-400 @endif uppercase">
                         {{ $barang->kategori }}
                     </span>
-                    @if($barang->berat)
-                        <p class="mt-4 text-sm text-slate-400">Berat: <span class="text-white font-medium">{{ $barang->berat }}</span></p>
-                    @endif
+ 
                 </div>
             </div>
 
@@ -54,8 +52,11 @@
                     <h3 class="text-lg font-bold text-white mb-6">Galeri Foto</h3>
                     <div class="grid grid-cols-2 gap-4">
                         @forelse($barang->fotoBarang as $foto)
-                            <div class="relative group aspect-video rounded-xl overflow-hidden border border-white/5">
+                            <div class="relative group aspect-video rounded-xl overflow-hidden border border-white/5 bg-slate-800">
                                 <img src="{{ asset('storage/' . $foto->foto_path) }}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-center text-xs text-white backdrop-blur-sm">
+                                    {{ $foto->keterangan }}
+                                </div>
                             </div>
                         @empty
                             <p class="text-slate-500 text-sm">Belum ada foto yang diunggah.</p>
