@@ -36,13 +36,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('transaksi/{transaksi}/angsuran/{angsuran}/cetak', [TransaksiRahnController::class, 'cetakBuktiAngsuran'])->name('transaksi.angsuran.cetak');
     Route::get('transaksi/{transaksi}/perpanjangan/{perpanjangan}/cetak', [PerpanjanganController::class, 'cetakNota'])->name('transaksi.perpanjangan.cetak');
 
-    Route::resource('lelang', LelangController::class);
+    Route::post('lelang', [\App\Http\Controllers\LelangController::class, 'store'])->name('lelang.store');
+    Route::get('lelang', [\App\Http\Controllers\LelangController::class, 'index'])->name('lelang.index');
+    Route::get('lelang/{lelang}', [\App\Http\Controllers\LelangController::class, 'show'])->name('lelang.show');
+    Route::get('lelang/{lelang}/hasil', [\App\Http\Controllers\LelangController::class, 'hasil'])->name('lelang.hasil');
+    Route::get('lelang/{lelang}/cetak-pdf', [\App\Http\Controllers\LelangController::class, 'cetakPdf'])->name('lelang.cetak-pdf');
 
     // API for transaction create
     Route::get('/api/settings', [SettingController::class, 'getSettings'])->name('api.settings');
 
     // Admin-only routes
     Route::middleware(AdminMiddleware::class)->group(function () {
+        Route::resource('cabang', \App\Http\Controllers\CabangController::class);
+        Route::resource('tarif-ujrah', \App\Http\Controllers\TarifUjrahController::class)->except(['index', 'create', 'show', 'edit']);
         Route::get('pengaturan', [SettingController::class, 'index'])->name('pengaturan.index');
         Route::put('pengaturan', [SettingController::class, 'update'])->name('pengaturan.update');
         Route::resource('kasir', KasirController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);

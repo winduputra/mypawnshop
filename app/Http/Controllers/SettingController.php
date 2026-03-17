@@ -10,7 +10,8 @@ class SettingController extends Controller
     public function index()
     {
         $settings = Setting::all()->groupBy('group');
-        return view('pengaturan.index', compact('settings'));
+        $tarifUjrahs = \App\Models\TarifUjrah::orderBy('kategori_barang')->orderBy('min_taksiran')->get();
+        return view('pengaturan.index', compact('settings', 'tarifUjrahs'));
     }
 
     public function update(Request $request)

@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Nasabah extends Model
 {
     protected $table = 'nasabah';
-    protected $fillable = ['nik', 'nama', 'email', 'alamat', 'telepon', 'foto_ktp', 'foto', 'nama_bank', 'no_rekening'];
+    protected $fillable = ['nik', 'nama', 'email', 'alamat', 'telepon', 'foto_ktp', 'foto', 'nama_bank', 'no_rekening', 'cabang_id'];
+
+    public function cabang()
+    {
+        return $this->belongsTo(Cabang::class);
+    }
 
     public function getWhatsappNumberAttribute()
     {

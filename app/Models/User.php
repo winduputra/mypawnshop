@@ -23,7 +23,13 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'cabang_id',
     ];
+
+    public function cabang()
+    {
+        return $this->belongsTo(Cabang::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

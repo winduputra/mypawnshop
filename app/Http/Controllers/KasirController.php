@@ -4,34 +4,52 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Cabang;
 use Illuminate\Support\Facades\Hash;
 
 class KasirController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kasirs = User::where('role', 'kasir')->latest()->paginate(10);
+        $search = $request->query('search');
+
+        $kasirs = User::where('role', 'kasir')
+            ->with('cabang')
+            ->when($search, fn($q, $s) =>
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhereHas('cabang', fn($q2) => $q2->where('nama_cabang', 'like', "%{$s}%"))
+            )
+            ->latest()->paginate(10)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('kasir._table', compact('kasirs'))->render();
+        }
+
         return view('kasir.index', compact('kasirs'));
     }
 
     public function create()
     {
-        return view('kasir.create');
+        $cabangs = Cabang::orderBy('nama_cabang')->get();
+        return view('kasir.create', compact('cabangs'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email',
+            'password'   => 'required|string|min:6|confirmed',
+            'cabang_id'  => 'required|exists:cabangs,id',
         ]);
 
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'kasir',
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
+            'role'      => 'kasir',
+            'cabang_id' => $request->cabang_id,
         ]);
 
         return redirect()->route('kasir.index')->with('success', 'Akun kasir berhasil dibuat.');
@@ -42,7 +60,8 @@ class KasirController extends Controller
         if ($kasir->role !== 'kasir') {
             return redirect()->route('kasir.index')->with('error', 'Akun ini bukan kasir.');
         }
-        return view('kasir.edit', compact('kasir'));
+        $cabangs = Cabang::orderBy('nama_cabang')->get();
+        return view('kasir.edit', compact('kasir', 'cabangs'));
     }
 
     public function update(Request $request, User $kasir)
@@ -52,13 +71,15 @@ class KasirController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $kasir->id,
-            'password' => 'nullable|string|min:6|confirmed',
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|email|unique:users,email,' . $kasir->id,
+            'password'  => 'nullable|string|min:6|confirmed',
+            'cabang_id' => 'required|exists:cabangs,id',
         ]);
 
-        $kasir->name = $request->name;
-        $kasir->email = $request->email;
+        $kasir->name      = $request->name;
+        $kasir->email     = $request->email;
+        $kasir->cabang_id = $request->cabang_id;
 
         if ($request->filled('password')) {
             $kasir->password = Hash::make($request->password);

@@ -27,6 +27,19 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Cabang</label>
+                    <select name="cabang_id" class="w-full glass bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                        <option value="">-- Pilih Cabang --</option>
+                        @foreach($cabangs as $cabang)
+                            <option value="{{ $cabang->id }}" {{ old('cabang_id', $kasir->cabang_id) == $cabang->id ? 'selected' : '' }}>
+                                {{ $cabang->nama_cabang }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('cabang_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-slate-400 mb-2">Password Baru <span class="text-slate-600">(Kosongkan jika tidak ingin ubah)</span></label>
                     <input type="password" name="password" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">
                     @error('password') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror

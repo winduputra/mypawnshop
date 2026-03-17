@@ -21,8 +21,12 @@ class TransaksiRahnController extends Controller
         $search = $request->query('search');
         $status = $request->query('status');
         $jatuh_tempo = $request->query('jatuh_tempo');
+        $user = auth()->user();
 
         $transactions = TransaksiRahn::with('nasabah', 'user')
+            ->when($user->role === 'kasir' && $user->cabang_id, function ($q) use ($user) {
+                $q->whereHas('nasabah', fn($q2) => $q2->where('cabang_id', $user->cabang_id));
+            })
             ->when($search, function ($query, $search) {
                 return $query->where('no_transaksi', 'like', "%{$search}%")
                     ->orWhereHas('nasabah', function ($q) use ($search) {
@@ -89,8 +93,17 @@ class TransaksiRahnController extends Controller
                 ? min(floatval($request->pinjaman_items[$barang->id]), $maxPinjaman)
                 : $maxPinjaman;
 
-            // Ujrah = flat Rp per 30 days from settings (per item)
-            $ujrah = Setting::getUjrah($barang->kategori);
+            // Ujrah = Check dynamic ranges first, fallback to default flat Rp per 30 days
+            $tarifRange = \App\Models\TarifUjrah::where('kategori_barang', $barang->kategori)
+                ->where('min_taksiran', '<=', $barang->taksiran)
+                ->where('max_taksiran', '>=', $barang->taksiran)
+                ->first();
+
+            if ($tarifRange) {
+                $ujrah = $tarifRange->tarif;
+            } else {
+                $ujrah = Setting::getUjrah($barang->kategori);
+            }
 
             $total_taksiran = $barang->taksiran;
             $total_pinjaman = $pinjaman;

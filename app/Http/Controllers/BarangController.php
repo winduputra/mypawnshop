@@ -7,14 +7,34 @@ use App\Models\Barang;
 use App\Models\Nasabah;
 use App\Models\FotoBarang;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class BarangController extends Controller
 {
+    private function getBaseQuery()
+    {
+        $user = Auth::user();
+        $query = Barang::with('nasabah', 'fotoBarang');
+        if ($user->role === 'kasir' && $user->cabang_id) {
+            $query->whereHas('nasabah', fn($q) => $q->where('cabang_id', $user->cabang_id));
+        }
+        return $query;
+    }
+
+    private function getNasabahScope()
+    {
+        $user = Auth::user();
+        $query = Nasabah::orderBy('nama');
+        if ($user->role === 'kasir' && $user->cabang_id) {
+            $query->where('cabang_id', $user->cabang_id);
+        }
+        return $query;
+    }
     public function index(Request $request)
     {
         $search = $request->query('search');
 
-        $barangs = Barang::with('nasabah', 'fotoBarang')
+        $barangs = $this->getBaseQuery()
             ->when($search, function ($query, $search) {
                 return $query->where('nama_barang', 'like', "%{$search}%")
                              ->orWhere('taksiran', 'like', "%{$search}%")
@@ -35,7 +55,7 @@ class BarangController extends Controller
 
     public function create()
     {
-        $nasabahs = Nasabah::orderBy('nama')->get();
+        $nasabahs = $this->getNasabahScope()->get();
         return view('barang.create', compact('nasabahs'));
     }
 
