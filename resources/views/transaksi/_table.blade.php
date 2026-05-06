@@ -26,13 +26,15 @@
                 <span class="text-xs text-rose-400">Lelang: {{ $trx->tanggal_batas_lelang }}</span>
             </td>
             <td class="px-6 py-4">
-                <span class="px-2 py-1 rounded-full text-xs font-medium 
+                @php $apColors=['draft'=>'bg-slate-500/10 text-slate-400','dikirim'=>'bg-blue-500/10 text-blue-400','pending'=>'bg-amber-500/10 text-amber-400','disetujui'=>'bg-emerald-500/10 text-emerald-400','ditolak'=>'bg-rose-500/10 text-rose-400']; @endphp
+                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $apColors[$trx->status_approval] ?? 'bg-slate-500/10 text-slate-400' }}">{{ ucfirst($trx->status_approval) }}</span>
+                @if($trx->status_approval === 'disetujui')
+                <span class="px-2 py-1 rounded-full text-xs font-medium ml-1
                     @if($trx->status == 'aktif') bg-sky-500/10 text-sky-400 
                     @elseif($trx->status == 'lunas') bg-emerald-500/10 text-emerald-400 
                     @elseif($trx->status == 'lelang') bg-rose-500/10 text-rose-400
-                    @else bg-indigo-500/10 text-indigo-400 @endif">
-                    {{ ucfirst($trx->status) }}
-                </span>
+                    @else bg-indigo-500/10 text-indigo-400 @endif">{{ ucfirst($trx->status) }}</span>
+                @endif
             </td>
             <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
                 @php

@@ -36,6 +36,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('transaksi/{transaksi}/angsuran/{angsuran}/cetak', [TransaksiRahnController::class, 'cetakBuktiAngsuran'])->name('transaksi.angsuran.cetak');
     Route::get('transaksi/{transaksi}/perpanjangan/{perpanjangan}/cetak', [PerpanjanganController::class, 'cetakNota'])->name('transaksi.perpanjangan.cetak');
 
+    // Akad Approval Workflow
+    Route::post('transaksi/{transaksi}/kirim', [TransaksiRahnController::class, 'kirimKeAdmin'])->name('transaksi.kirim');
+    Route::get('transaksi/{transaksi}/review', [TransaksiRahnController::class, 'review'])->name('transaksi.review');
+    Route::post('transaksi/{transaksi}/approve', [TransaksiRahnController::class, 'approveAkad'])->name('transaksi.approve');
+    Route::post('transaksi/{transaksi}/pending', [TransaksiRahnController::class, 'pendingAkad'])->name('transaksi.pending');
+    Route::post('transaksi/{transaksi}/reject', [TransaksiRahnController::class, 'rejectAkad'])->name('transaksi.reject');
+
     Route::post('lelang', [\App\Http\Controllers\LelangController::class, 'store'])->name('lelang.store');
     Route::get('lelang', [\App\Http\Controllers\LelangController::class, 'index'])->name('lelang.index');
     Route::get('lelang/{lelang}', [\App\Http\Controllers\LelangController::class, 'show'])->name('lelang.show');

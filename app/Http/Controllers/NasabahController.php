@@ -137,8 +137,8 @@ class NasabahController extends Controller
 
     public function destroy(Nasabah $nasabah)
     {
-        if (auth()->user()->role !== 'admin') {
-            return back()->with('error', 'Hanya admin yang dapat menghapus nasabah.');
+        if (!in_array(auth()->user()->role, ['admin', 'owner'])) {
+            return back()->with('error', 'Hanya admin/owner yang dapat menghapus nasabah.');
         }
 
         if ($nasabah->foto_ktp) Storage::disk('public')->delete($nasabah->foto_ktp);

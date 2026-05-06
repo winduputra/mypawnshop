@@ -10,10 +10,10 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role === 'admin') {
+        if (auth()->check() && in_array(auth()->user()->role, ['admin', 'owner'])) {
             return $next($request);
         }
 
-        abort(403, 'Akses ditolak. Hanya admin yang dapat mengakses halaman ini.');
+        abort(403, 'Akses ditolak. Hanya admin/owner yang dapat mengakses halaman ini.');
     }
 }

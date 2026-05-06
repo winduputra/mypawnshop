@@ -24,15 +24,23 @@ class TransaksiRahnController extends Controller
         $user = auth()->user();
 
         $transactions = TransaksiRahn::with('nasabah', 'user')
-            ->when($user->role === 'kasir' && $user->cabang_id, function ($q) use ($user) {
-                $q->whereHas('nasabah', fn($q2) => $q2->where('cabang_id', $user->cabang_id));
+            ->when($user->role === 'kasir', function ($q) use ($user) {
+                $q->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if ($user->cabang_id) {
+                        $query->orWhereHas('nasabah', fn($q2) => $q2->where('cabang_id', $user->cabang_id));
+                    }
+                });
             })
             ->when($search, function ($query, $search) {
-                return $query->where('no_transaksi', 'like', "%{$search}%")
-                    ->orWhereHas('nasabah', function ($q) use ($search) {
-                        $q->where('nama', 'like', "%{$search}%")
-                          ->orWhere('nik', 'like', "%{$search}%");
-                    });
+                return $query->where(function ($q) use ($search) {
+                    $q->where('no_transaksi', 'like', "%{$search}%")
+                      ->orWhere('no_register_akad', 'like', "%{$search}%")
+                      ->orWhereHas('nasabah', function ($q2) use ($search) {
+                          $q2->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nik', 'like', "%{$search}%");
+                      });
+                });
             })
             ->when($status, function ($query, $status) {
                 return $query->where('status', $status);
@@ -61,7 +69,7 @@ class TransaksiRahnController extends Controller
     {
         $nasabahs = Nasabah::with(['barang' => function ($query) {
             $query->whereDoesntHave('detailTransaksi.transaksiRahn', function ($q) {
-                $q->whereIn('status', ['aktif', 'diperpanjang']);
+                $q->whereIn('status', ['aktif', 'diperpanjang', 'draft']);
             });
         }])->orderBy('nama')->get();
         
@@ -76,14 +84,11 @@ class TransaksiRahnController extends Controller
             'barang_id' => 'required|exists:barang,id',
             'pinjaman_items' => 'required|array',
             'tanggal_transaksi' => 'required|date',
-            'biaya_admin' => 'required|numeric|min:0',
             'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman',
         ]);
 
         return DB::transaction(function () use ($request) {
             $barang = Barang::findOrFail($request->barang_id);
-            
-            // Hardcode tenor automatically to 30 days
             $tenor = 30;
             
             $maxPercentage = Setting::getLoanPercentage($barang->kategori);
@@ -93,32 +98,17 @@ class TransaksiRahnController extends Controller
                 ? min(floatval($request->pinjaman_items[$barang->id]), $maxPinjaman)
                 : $maxPinjaman;
 
-            // Ujrah = Check dynamic ranges first, fallback to default flat Rp per 30 days
-            $tarifRange = \App\Models\TarifUjrah::where('kategori_barang', $barang->kategori)
-                ->where('min_taksiran', '<=', $barang->taksiran)
-                ->where('max_taksiran', '>=', $barang->taksiran)
-                ->first();
+            // Ijarah = percentage of taksiran per 30 days
+            $ijarahPersen = Setting::getIjarahPersen();
+            $ujrah = $barang->taksiran * ($ijarahPersen / 100);
 
-            if ($tarifRange) {
-                $ujrah = $tarifRange->tarif;
-            } else {
-                $ujrah = Setting::getUjrah($barang->kategori);
-            }
+            // Biaya admin per kategori
+            $biayaAdmin = Setting::getBiayaAdmin($barang->kategori);
 
             $total_taksiran = $barang->taksiran;
             $total_pinjaman = $pinjaman;
-            $total_ujrah_per_30 = $ujrah;
-
-            // Since tenor is exactly 30 days
             $biaya_penitipan = $ujrah;
-            $biaya_admin = floatval($request->biaya_admin);
-
-            // Calculate sisa_pinjaman based on metode pembayaran
-            if ($request->metode_pembayaran === 'potong_pinjaman') {
-                $sisa_pinjaman = $total_pinjaman; // Nasabah tetap utang penuh, biaya dipotong dari uang yg diterima
-            } else {
-                $sisa_pinjaman = $total_pinjaman; // Nasabah bayar biaya di awal secara terpisah
-            }
+            $sisa_pinjaman = $total_pinjaman;
 
             $tanggal_trx = Carbon::parse($request->tanggal_transaksi);
             $jatuh_tempo = $tanggal_trx->copy()->addDays($tenor);
@@ -128,20 +118,22 @@ class TransaksiRahnController extends Controller
 
             $transaksi = TransaksiRahn::create([
                 'no_transaksi' => $no_trx,
+                'no_register_akad' => null, // assigned on approval
                 'nasabah_id' => $request->nasabah_id,
                 'user_id' => Auth::id(),
                 'tanggal_transaksi' => $request->tanggal_transaksi,
                 'total_taksiran' => $total_taksiran,
                 'total_pinjaman' => $total_pinjaman,
                 'sisa_pinjaman' => $sisa_pinjaman,
-                'biaya_admin' => $biaya_admin,
+                'biaya_admin' => $biayaAdmin,
                 'biaya_penitipan' => $biaya_penitipan,
                 'metode_pembayaran' => $request->metode_pembayaran,
-                'ujrah_per_30hari' => $total_ujrah_per_30,
+                'ujrah_per_30hari' => $ujrah,
                 'tenor_hari' => $tenor,
                 'tanggal_jatuh_tempo' => $jatuh_tempo->toDateString(),
                 'tanggal_batas_lelang' => $batas_lelang->toDateString(),
-                'status' => 'aktif',
+                'status' => 'draft',
+                'status_approval' => 'draft',
             ]);
 
             $transaksi->detailTransaksi()->create([
@@ -150,18 +142,169 @@ class TransaksiRahnController extends Controller
                 'pinjaman_item' => $pinjaman,
             ]);
 
-            return redirect()->route('transaksi.show', $transaksi)->with('success', 'Transaksi Rahn berhasil dibuat.');
+            return redirect()->route('transaksi.show', $transaksi)->with('success', 'Draft akad berhasil dibuat. Silakan kirim ke admin untuk verifikasi.');
         });
+    }
+
+    /**
+     * Kasir sends draft to admin for review.
+     */
+    public function kirimKeAdmin(TransaksiRahn $transaksi)
+    {
+        if ($transaksi->status_approval !== 'draft' && $transaksi->status_approval !== 'pending') {
+            return back()->with('error', 'Akad tidak dapat dikirim.');
+        }
+
+        $transaksi->update([
+            'status_approval' => 'dikirim',
+            'catatan_admin' => null, // clear previous notes
+        ]);
+
+        return back()->with('success', 'Akad berhasil dikirim ke admin untuk diverifikasi.');
+    }
+
+    /**
+     * Admin review page.
+     */
+    public function review(TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'owner'])) {
+            abort(403);
+        }
+
+        $transaksi->load('nasabah', 'user', 'detailTransaksi.barang.fotoBarang');
+        return view('transaksi.review', compact('transaksi'));
+    }
+
+    /**
+     * Admin approves akad.
+     */
+    public function approveAkad(Request $request, TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'owner'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'taksiran_final' => 'required|numeric|min:0',
+            'catatan_admin'  => 'nullable|string',
+        ]);
+
+        return DB::transaction(function () use ($request, $transaksi) {
+            $taksiran_final = floatval($request->taksiran_final);
+            $detail = $transaksi->detailTransaksi->first();
+            $barang = $detail->barang;
+
+            // Recalculate based on taksiran final
+            $maxPercentage = Setting::getLoanPercentage($barang->kategori);
+            $maxPinjaman = $taksiran_final * $maxPercentage;
+            $pinjaman = min($transaksi->total_pinjaman, $maxPinjaman);
+
+            $ijarahPersen = Setting::getIjarahPersen();
+            $ujrah = $taksiran_final * ($ijarahPersen / 100);
+
+            // Generate no_register_akad
+            $today = now()->format('Ymd');
+            $lastAkad = TransaksiRahn::whereNotNull('no_register_akad')
+                ->where('no_register_akad', 'like', "AKD-{$today}-%")
+                ->orderByDesc('no_register_akad')
+                ->first();
+            $seq = 1;
+            if ($lastAkad) {
+                $parts = explode('-', $lastAkad->no_register_akad);
+                $seq = intval(end($parts)) + 1;
+            }
+            $noRegister = "AKD-{$today}-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+            $transaksi->update([
+                'no_register_akad' => $noRegister,
+                'taksiran_final' => $taksiran_final,
+                'total_taksiran' => $taksiran_final,
+                'total_pinjaman' => $pinjaman,
+                'sisa_pinjaman' => $pinjaman,
+                'ujrah_per_30hari' => $ujrah,
+                'biaya_penitipan' => $ujrah,
+                'status' => 'aktif',
+                'status_approval' => 'disetujui',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'catatan_admin' => $request->catatan_admin,
+            ]);
+
+            // Update detail
+            $detail->update([
+                'taksiran_item' => $taksiran_final,
+                'pinjaman_item' => $pinjaman,
+            ]);
+
+            // Update barang taksiran
+            $barang->update([
+                'taksiran' => $taksiran_final,
+            ]);
+
+            return redirect()->route('transaksi.show', $transaksi)->with('success', "Akad DISETUJUI. No Register: {$noRegister}");
+        });
+    }
+
+    /**
+     * Admin marks akad as pending (needs revision).
+     */
+    public function pendingAkad(Request $request, TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'owner'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'catatan_admin' => 'required|string|min:5',
+        ]);
+
+        $transaksi->update([
+            'status_approval' => 'pending',
+            'catatan_admin' => $request->catatan_admin,
+        ]);
+
+        return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad dikembalikan ke kasir dengan status PENDING.');
+    }
+
+    /**
+     * Admin rejects akad.
+     */
+    public function rejectAkad(Request $request, TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'owner'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'catatan_admin' => 'required|string|min:5',
+        ]);
+
+        $transaksi->update([
+            'status' => 'ditolak',
+            'status_approval' => 'ditolak',
+            'catatan_admin' => $request->catatan_admin,
+        ]);
+
+        return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad DITOLAK.');
     }
 
     public function show(TransaksiRahn $transaksi)
     {
-        $transaksi->load('nasabah', 'user', 'detailTransaksi.barang', 'perpanjangan', 'pelunasan', 'lelang', 'angsuran.user');
+        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan', 'pelunasan', 'lelang', 'angsuran.user');
         return view('transaksi.show', compact('transaksi'));
     }
 
     public function cetakKontrak(TransaksiRahn $transaksi)
     {
+        if ($transaksi->status_approval !== 'disetujui') {
+            return back()->with('error', 'Kontrak hanya bisa dicetak setelah akad disetujui.');
+        }
+
         $transaksi->load('nasabah', 'user', 'detailTransaksi.barang');
         
         $pdf = Pdf::loadView('transaksi.kontrak-pdf', compact('transaksi'));

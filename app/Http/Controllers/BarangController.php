@@ -109,8 +109,8 @@ class BarangController extends Controller
 
     public function edit(Barang $barang)
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('barang.index')->with('error', 'Hanya admin yang dapat mengedit barang.');
+        if (!in_array(auth()->user()->role, ['admin', 'owner'])) {
+            return redirect()->route('barang.index')->with('error', 'Hanya admin/owner yang dapat mengedit barang.');
         }
 
         $nasabahs = Nasabah::orderBy('nama')->get();
@@ -119,8 +119,8 @@ class BarangController extends Controller
 
     public function update(Request $request, Barang $barang)
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('barang.index')->with('error', 'Hanya admin yang dapat mengedit barang.');
+        if (!in_array(auth()->user()->role, ['admin', 'owner'])) {
+            return redirect()->route('barang.index')->with('error', 'Hanya admin/owner yang dapat mengedit barang.');
         }
 
         $request->validate([
@@ -171,8 +171,8 @@ class BarangController extends Controller
 
     public function destroy(Barang $barang)
     {
-        if (auth()->user()->role !== 'admin') {
-            return back()->with('error', 'Hanya admin yang dapat menghapus barang jaminan.');
+        if (!in_array(auth()->user()->role, ['admin', 'owner'])) {
+            return back()->with('error', 'Hanya admin/owner yang dapat menghapus barang jaminan.');
         }
 
         foreach ($barang->fotoBarang as $foto) {

@@ -34,4 +34,21 @@ class Setting extends Model
         $key = 'ujrah_' . $kategori;
         return (float) static::getValue($key, 50000);
     }
+
+    /**
+     * Get biaya admin flat per kategori barang.
+     */
+    public static function getBiayaAdmin(string $kategori): float
+    {
+        $key = 'biaya_admin_' . $kategori;
+        return (float) static::getValue($key, 35000);
+    }
+
+    /**
+     * Get ijarah percentage (% dari taksiran per 30 hari).
+     */
+    public static function getIjarahPersen(): float
+    {
+        return (float) static::getValue('ijarah_persen', 2);
+    }
 }

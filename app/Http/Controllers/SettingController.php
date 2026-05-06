@@ -17,7 +17,10 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'biaya_admin' => 'required|numeric|min:0',
+            'biaya_admin_elektronik' => 'required|numeric|min:0',
+            'biaya_admin_emas' => 'required|numeric|min:0',
+            'biaya_admin_kendaraan' => 'required|numeric|min:0',
+            'ijarah_persen' => 'required|numeric|min:0|max:100',
             'ujrah_emas' => 'required|numeric|min:0',
             'ujrah_elektronik' => 'required|numeric|min:0',
             'ujrah_kendaraan' => 'required|numeric|min:0',
@@ -27,12 +30,16 @@ class SettingController extends Controller
         ]);
 
         $keys = [
-            'biaya_admin', 'ujrah_emas', 'ujrah_elektronik', 'ujrah_kendaraan',
-            'persentase_emas', 'persentase_elektronik', 'persentase_kendaraan'
+            'biaya_admin_elektronik', 'biaya_admin_emas', 'biaya_admin_kendaraan',
+            'ijarah_persen',
+            'ujrah_emas', 'ujrah_elektronik', 'ujrah_kendaraan',
+            'persentase_emas', 'persentase_elektronik', 'persentase_kendaraan',
         ];
 
         foreach ($keys as $key) {
-            Setting::setValue($key, $request->input($key));
+            if ($request->has($key)) {
+                Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key)]);
+            }
         }
 
         return redirect()->route('pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui.');
