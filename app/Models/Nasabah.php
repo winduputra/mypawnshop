@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Nasabah extends Model
 {
     protected $table = 'nasabah';
-    protected $fillable = ['nik', 'nama', 'email', 'alamat', 'telepon', 'foto_ktp', 'foto', 'nama_bank', 'no_rekening', 'cabang_id'];
+    protected $fillable = [
+        'nik', 'nama', 'email', 'alamat', 'alamat_domisili',
+        'telepon', 'no_wa', 'foto_ktp', 'foto',
+        'nama_bank', 'no_rekening', 'nama_pemilik_rekening',
+        'nama_ibu_kandung', 'pekerjaan', 'status_pernikahan', 'cabang_id',
+    ];
 
     public function cabang()
     {

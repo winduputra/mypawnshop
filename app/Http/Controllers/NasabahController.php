@@ -43,21 +43,28 @@ class NasabahController extends Controller
 
     public function create()
     {
-        return view('nasabah.create');
+        $nextId = (Nasabah::max('id') ?? 0) + 1;
+        return view('nasabah.create', compact('nextId'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nik'        => 'required|unique:nasabah,nik',
-            'nama'       => 'required',
-            'email'      => 'required|email|unique:nasabah,email',
-            'alamat'     => 'required',
-            'telepon'    => 'required|unique:nasabah,telepon',
-            'foto_ktp'   => 'required|image|max:2048',
-            'foto'       => 'required|image|max:2048',
-            'nama_bank'  => 'required',
-            'no_rekening'=> 'required',
+            'nik'                   => 'required|unique:nasabah,nik',
+            'nama'                  => 'required',
+            'email'                 => 'required|email|unique:nasabah,email',
+            'alamat'                => 'required',
+            'alamat_domisili'       => 'nullable',
+            'telepon'               => 'required|unique:nasabah,telepon',
+            'no_wa'                 => 'nullable',
+            'foto_ktp'              => 'required|image|max:2048',
+            'foto'                  => 'nullable|image|max:2048',
+            'nama_bank'             => 'required',
+            'no_rekening'           => 'required',
+            'nama_pemilik_rekening' => 'required',
+            'nama_ibu_kandung'      => 'required',
+            'pekerjaan'             => 'required',
+            'status_pernikahan'     => 'required|in:Menikah,Belum Menikah,Duda/Janda',
         ]);
 
         $data = $request->all();
@@ -94,15 +101,21 @@ class NasabahController extends Controller
     public function update(Request $request, Nasabah $nasabah)
     {
         $request->validate([
-            'nik'        => 'required|unique:nasabah,nik,' . $nasabah->id,
-            'nama'       => 'required',
-            'email'      => 'required|email|unique:nasabah,email,' . $nasabah->id,
-            'alamat'     => 'required',
-            'telepon'    => 'required|unique:nasabah,telepon,' . $nasabah->id,
-            'foto_ktp'   => 'nullable|image|max:2048',
-            'foto'       => 'nullable|image|max:2048',
-            'nama_bank'  => 'required',
-            'no_rekening'=> 'required',
+            'nik'                   => 'required|unique:nasabah,nik,' . $nasabah->id,
+            'nama'                  => 'required',
+            'email'                 => 'required|email|unique:nasabah,email,' . $nasabah->id,
+            'alamat'                => 'required',
+            'alamat_domisili'       => 'nullable',
+            'telepon'               => 'required|unique:nasabah,telepon,' . $nasabah->id,
+            'no_wa'                 => 'nullable',
+            'foto_ktp'              => 'nullable|image|max:2048',
+            'foto'                  => 'nullable|image|max:2048',
+            'nama_bank'             => 'required',
+            'no_rekening'           => 'required',
+            'nama_pemilik_rekening' => 'required',
+            'nama_ibu_kandung'      => 'required',
+            'pekerjaan'             => 'required',
+            'status_pernikahan'     => 'required|in:Menikah,Belum Menikah,Duda/Janda',
         ]);
 
         $data = $request->all();

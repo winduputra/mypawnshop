@@ -1,121 +1,138 @@
 <x-app-layout>
-    @section('header_title', 'Tambah Nasabah')
-
-    @section('content')
-    <div class="max-w-2xl mx-auto">
-        <a href="{{ route('nasabah.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center mb-6">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            Kembali ke Daftar
-        </a>
-
-        <div class="glass-card p-8">
-            <h3 class="text-xl font-bold text-white mb-6">Formulir Nasabah Baru</h3>
-
-            <form action="{{ route('nasabah.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">NIK (Sesuai KTP)</label>
-                    <input type="text" name="nik" value="{{ old('nik') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
-                    @error('nik') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Nama Lengkap</label>
-                    <input type="text" name="nama" value="{{ old('nama') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Email <span class="text-rose-400">*</span></label>
-                    <input type="email" name="email" value="{{ old('email') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required placeholder="contoh@email.com">
-                    @error('email') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Telepon / WhatsApp</label>
-                    <input type="text" name="telepon" value="{{ old('telepon') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
-                    @error('telepon') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Alamat Lengkap</label>
-                    <textarea name="alamat" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>{{ old('alamat') }}</textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+@section('header_title', 'Registrasi Nasabah Baru')
+@section('content')
+<div class="max-w-6xl mx-auto">
+    <a href="{{ route('nasabah.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Kembali ke Daftar
+    </a>
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-white">Registrasi Nasabah Baru</h2>
+        <p class="text-sm text-slate-400 mt-1">Lengkapi data di bawah ini untuk mendaftarkan nasabah.</p>
+    </div>
+    <form action="{{ route('nasabah.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{-- LEFT: Data Pribadi --}}
+            <div class="glass-card p-6">
+                <h3 class="text-base font-semibold text-amber-400 mb-5">Data Pribadi</h3>
+                <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Pilih Bank <span class="text-rose-400">*</span></label>
-                        <select id="select_bank" name="nama_bank" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required onchange="checkBank(this.value)">
-                            <option value="" disabled {{ !old('nama_bank') ? 'selected' : '' }} class="bg-slate-800 text-white">Pilih Bank...</option>
-                            @php
-                                $banks = ['Mandiri', 'BCA', 'BRI', 'BNI', 'BTN', 'BSI', 'Permata', 'CIMB Niaga', 'Bank Lampung'];
-                            @endphp
-                            @foreach($banks as $bank)
-                                <option value="{{ $bank }}" {{ old('nama_bank') == $bank ? 'selected' : '' }} class="bg-slate-800 text-white">{{ $bank }}</option>
-                            @endforeach
-                            <option value="Lainnya" {{ old('nama_bank') == 'Lainnya' || (old('nama_bank') && !in_array(old('nama_bank'), $banks)) ? 'selected' : '' }} class="bg-slate-800 text-white">Lainnya (Ketik Manual)</option>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">ID Nasabah (Otomatis)</label>
+                        <input type="text" value="NSB-{{ str_pad($nextId, 5, '0', STR_PAD_LEFT) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white font-mono text-sm" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Nama Lengkap <span class="text-rose-400">*</span></label>
+                        <input type="text" name="nama" value="{{ old('nama') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Masukkan nama sesuai KTP">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">NIK (16 Digit) <span class="text-rose-400">*</span></label>
+                        <input type="text" name="nik" value="{{ old('nik') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required maxlength="16" placeholder="3201xxxxxxxxxxxx">
+                        @error('nik') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Pekerjaan <span class="text-rose-400">*</span></label>
+                            <input type="text" name="pekerjaan" value="{{ old('pekerjaan') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Contoh: PNS, Swasta">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nama Ibu Kandung <span class="text-rose-400">*</span></label>
+                            <input type="text" name="nama_ibu_kandung" value="{{ old('nama_ibu_kandung') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Status Pernikahan <span class="text-rose-400">*</span></label>
+                        <select name="status_pernikahan" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="" disabled {{ !old('status_pernikahan') ? 'selected' : '' }} class="bg-slate-800">Pilih...</option>
+                            <option value="Menikah" {{ old('status_pernikahan') == 'Menikah' ? 'selected' : '' }} class="bg-slate-800">Menikah</option>
+                            <option value="Belum Menikah" {{ old('status_pernikahan') == 'Belum Menikah' ? 'selected' : '' }} class="bg-slate-800">Belum Menikah</option>
+                            <option value="Duda/Janda" {{ old('status_pernikahan') == 'Duda/Janda' ? 'selected' : '' }} class="bg-slate-800">Duda/Janda</option>
                         </select>
                     </div>
-
-                    <div id="manual_bank_container" class="{{ old('nama_bank') == 'Lainnya' || (old('nama_bank') && !in_array(old('nama_bank'), $banks)) ? '' : 'hidden' }}">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Nama Bank (Ketik Manual) <span class="text-rose-400">*</span></label>
-                        <input type="text" id="manual_bank" name="manual_bank" value="{{ in_array(old('nama_bank'), $banks) ? '' : old('nama_bank') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" placeholder="Masukkan nama bank...">
-                    </div>
-
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">No. Rekening <span class="text-rose-400">*</span></label>
-                        <input type="text" name="no_rekening" value="{{ old('no_rekening') }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Foto KTP <span class="text-rose-400">*</span></label>
+                        <input type="file" name="foto_ktp" class="w-full text-slate-400 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Foto KTP <span class="text-rose-400">*</span></label>
-                        <input type="file" name="foto_ktp" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
-                        <p class="text-xs text-slate-500 mt-2">Maksimal 2MB (JPG/PNG)</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Foto Nasabah <span class="text-rose-400">*</span></label>
-                        <input type="file" name="foto" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
-                        <p class="text-xs text-slate-500 mt-2">Maksimal 2MB (JPG/PNG)</p>
+            </div>
+            {{-- RIGHT: Kontak & Alamat + Rekening --}}
+            <div class="space-y-6">
+                <div class="glass-card p-6">
+                    <h3 class="text-base font-semibold text-amber-400 mb-5">Kontak & Alamat</h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">No. HP <span class="text-rose-400">*</span></label>
+                                <input type="text" name="telepon" value="{{ old('telepon') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="0812xxxxxxxx">
+                                @error('telepon') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">No. WA Aktif</label>
+                                <input type="text" name="no_wa" value="{{ old('no_wa') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="0812xxxxxxxx">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Email Aktif <span class="text-rose-400">*</span></label>
+                            <input type="email" name="email" value="{{ old('email') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="contoh@email.com">
+                            @error('email') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Alamat Lengkap Sesuai KTP <span class="text-rose-400">*</span></label>
+                            <textarea name="alamat" id="alamat_ktp" rows="2" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>{{ old('alamat') }}</textarea>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-xs font-medium text-slate-400">Alamat Domisili Sekarang</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input type="checkbox" id="sama_ktp" class="w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-sky-500 focus:ring-sky-500">
+                                    <span class="text-[11px] text-sky-400">Sama dengan KTP</span>
+                                </label>
+                            </div>
+                            <textarea name="alamat_domisili" id="alamat_domisili" rows="2" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500">{{ old('alamat_domisili') }}</textarea>
+                        </div>
                     </div>
                 </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="btn-gradient w-full py-4 text-lg">
-                        Simpan Data Nasabah
-                    </button>
+                <div class="glass-card p-6">
+                    <h3 class="text-base font-semibold text-amber-400 mb-5">Informasi Rekening</h3>
+                    <div class="space-y-4">
+                        @php $banks = ['Mandiri','BCA','BRI','BNI','BTN','BSI','Permata','CIMB Niaga','Bank Lampung']; @endphp
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nama Bank <span class="text-rose-400">*</span></label>
+                            <select id="select_bank" name="nama_bank" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required onchange="checkBank(this.value)">
+                                <option value="" disabled {{ !old('nama_bank') ? 'selected' : '' }} class="bg-slate-800">Pilih Bank...</option>
+                                @foreach($banks as $bank)
+                                <option value="{{ $bank }}" {{ old('nama_bank') == $bank ? 'selected' : '' }} class="bg-slate-800">{{ $bank }}</option>
+                                @endforeach
+                                <option value="Lainnya" {{ old('nama_bank') == 'Lainnya' || (old('nama_bank') && !in_array(old('nama_bank'), $banks)) ? 'selected' : '' }} class="bg-slate-800">Lainnya</option>
+                            </select>
+                        </div>
+                        <div id="manual_bank_container" class="{{ old('nama_bank') == 'Lainnya' || (old('nama_bank') && !in_array(old('nama_bank'), $banks)) ? '' : 'hidden' }}">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nama Bank (Manual) <span class="text-rose-400">*</span></label>
+                            <input type="text" id="manual_bank" name="manual_bank" value="{{ in_array(old('nama_bank'), $banks) ? '' : old('nama_bank') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Nomor Rekening <span class="text-rose-400">*</span></label>
+                                <input type="text" name="no_rekening" value="{{ old('no_rekening') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Nama Pemilik <span class="text-rose-400">*</span></label>
+                                <input type="text" name="nama_pemilik_rekening" value="{{ old('nama_pemilik_rekening') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
-
-    <script>
-        function checkBank(value) {
-            const container = document.getElementById('manual_bank_container');
-            const manualInput = document.getElementById('manual_bank');
-            const selectBank = document.getElementById('select_bank');
-            
-            if (value === 'Lainnya') {
-                container.classList.remove('hidden');
-                manualInput.setAttribute('required', 'required');
-                manualInput.name = 'nama_bank';
-                selectBank.name = 'select_bank_ignore'; // temporarily switch name
-            } else {
-                container.classList.add('hidden');
-                manualInput.removeAttribute('required');
-                manualInput.name = 'manual_bank';
-                selectBank.name = 'nama_bank';
-            }
-        }
-        
-        // Run on load to handle old() values
-        document.addEventListener('DOMContentLoaded', () => {
-            const selectValue = document.getElementById('select_bank').value;
-            if (selectValue === 'Lainnya') {
-                checkBank('Lainnya');
-            }
-        });
-    </script>
-    @endsection
+        <div class="flex justify-end gap-3 mt-6">
+            <a href="{{ route('nasabah.index') }}" class="glass px-6 py-3 rounded-xl text-sm text-slate-300 hover:bg-white/10 transition font-medium">Batal</a>
+            <button type="submit" class="btn-gradient px-8 py-3 rounded-xl text-sm font-semibold">Simpan Nasabah</button>
+        </div>
+    </form>
+</div>
+<script>
+function checkBank(v){const c=document.getElementById('manual_bank_container'),m=document.getElementById('manual_bank'),s=document.getElementById('select_bank');if(v==='Lainnya'){c.classList.remove('hidden');m.required=true;m.name='nama_bank';s.name='_ignore';}else{c.classList.add('hidden');m.required=false;m.name='manual_bank';s.name='nama_bank';}}
+document.addEventListener('DOMContentLoaded',()=>{const sv=document.getElementById('select_bank').value;if(sv==='Lainnya')checkBank('Lainnya');const cb=document.getElementById('sama_ktp'),k=document.getElementById('alamat_ktp'),d=document.getElementById('alamat_domisili');function sync(){if(cb.checked){d.value=k.value;d.readOnly=true;d.classList.add('opacity-50');}else{d.readOnly=false;d.classList.remove('opacity-50');}}cb.addEventListener('change',sync);k.addEventListener('input',()=>{if(cb.checked)d.value=k.value;});sync();});
+</script>
+@endsection
 </x-app-layout>
