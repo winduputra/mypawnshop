@@ -1,92 +1,118 @@
 <x-app-layout>
-    @section('header_title', 'Edit Barang Jaminan')
-
-    @section('content')
-    <div class="max-w-3xl mx-auto">
-        <a href="{{ route('barang.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center mb-6">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            Kembali ke Daftar
-        </a>
-
-        <div class="glass-card p-8">
-            <h3 class="text-xl font-bold text-white mb-6">Edit Data Barang Jaminan</h3>
-
-            <form action="{{ route('barang.update', $barang) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                @method('PUT')
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Pilih Nasabah</label>
-                        <select name="nasabah_id" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+@section('header_title', 'Edit Barang Jaminan')
+@section('content')
+<div class="max-w-6xl mx-auto">
+    <a href="{{ route('barang.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center mb-4">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Kembali ke Daftar
+    </a>
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-white">Edit Barang Jaminan</h2>
+        <p class="text-sm text-slate-400 mt-1">Perbarui data barang jaminan sesuai kebutuhan.</p>
+    </div>
+    <form action="{{ route('barang.update', $barang) }}" method="POST" enctype="multipart/form-data">
+        @csrf @method('PUT')
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{-- LEFT --}}
+            <div class="glass-card p-6">
+                <h3 class="text-base font-semibold text-amber-400 mb-5">Identitas Barang</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">ID Barang Jaminan</label>
+                        <input type="text" value="BRG-{{ str_pad($barang->id, 5, '0', STR_PAD_LEFT) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white font-mono text-sm" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Pilih Nasabah <span class="text-rose-400">*</span></label>
+                        <select name="nasabah_id" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
                             @foreach($nasabahs as $nasabah)
-                                <option value="{{ $nasabah->id }}" {{ $barang->nasabah_id == $nasabah->id ? 'selected' : '' }}>{{ $nasabah->nik }} - {{ $nasabah->nama }}</option>
+                            <option value="{{ $nasabah->id }}" {{ $barang->nasabah_id == $nasabah->id ? 'selected' : '' }}>{{ $nasabah->nik }} - {{ $nasabah->nama }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Nama Barang</label>
-                        <input type="text" name="nama_barang" value="{{ old('nama_barang', $barang->nama_barang) }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
-                    </div>
-
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kategori</label>
-                        <select name="kategori" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
-                            <option value="emas" {{ $barang->kategori == 'emas' ? 'selected' : '' }}>Emas</option>
-                            <option value="elektronik" {{ $barang->kategori == 'elektronik' ? 'selected' : '' }}>Elektronik</option>
-                            <option value="kendaraan" {{ $barang->kategori == 'kendaraan' ? 'selected' : '' }}>Kendaraan</option>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Jenis Barang <span class="text-rose-400">*</span></label>
+                        @php $kat = old('kategori', $barang->kategori); @endphp
+                        <select name="kategori" id="kategori_select" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="elektronik" {{ $kat == 'elektronik' ? 'selected' : '' }} class="bg-slate-800">Elektronik</option>
+                            <option value="emas" {{ $kat == 'emas' ? 'selected' : '' }} class="bg-slate-800">Emas</option>
+                            <option value="kendaraan" {{ $kat == 'kendaraan' ? 'selected' : '' }} class="bg-slate-800">Kendaraan</option>
                         </select>
                     </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Deskripsi / Kondisi Barang</label>
-                        <textarea name="deskripsi" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">{{ old('deskripsi', $barang->deskripsi) }}</textarea>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Merk / Type Barang <span class="text-rose-400">*</span></label>
+                        <input type="text" name="nama_barang" value="{{ old('nama_barang', $barang->nama_barang) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
                     </div>
-
-                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                        @php
-                            $foto1 = $barang->fotoBarang->where('keterangan', 'Foto 1')->first();
-                            $foto2 = $barang->fotoBarang->where('keterangan', 'Foto 2')->first();
-                            $foto3 = $barang->fotoBarang->where('keterangan', 'Foto 3')->first();
-                        @endphp
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Merk / Type (Detail)</label>
+                        <input type="text" name="merk_type" value="{{ old('merk_type', $barang->merk_type) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1" id="label_nomor_seri">Nomor Seri / Rangka / Polisi</label>
+                        <input type="text" name="nomor_seri" value="{{ old('nomor_seri', $barang->nomor_seri) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Spesifikasi</label>
+                        <textarea name="spesifikasi" rows="2" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500">{{ old('spesifikasi', $barang->spesifikasi) }}</textarea>
+                    </div>
+                </div>
+            </div>
+            {{-- RIGHT --}}
+            <div class="space-y-6">
+                <div class="glass-card p-6">
+                    <h3 class="text-base font-semibold text-amber-400 mb-5">Kelengkapan & Kondisi</h3>
+                    <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 1</label>
-                            @if($foto1)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $foto1->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 1">
-                                </div>
-                            @endif
-                            <input type="file" name="foto_1" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
-                            <p class="text-[10px] text-slate-500 mt-1">Isi untuk mengganti foto lama.</p>
+                            <label class="block text-xs font-medium text-slate-400 mb-2">Kelengkapan Barang</label>
+                            <div id="kelengkapan_container" class="space-y-2"></div>
+                            <div class="mt-2 flex gap-2">
+                                <input type="text" id="kelengkapan_lainnya" class="flex-1 glass bg-white/5 border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Lainnya...">
+                                <button type="button" onclick="addKelengkapan()" class="glass px-3 py-2 rounded-lg text-xs text-sky-400 hover:bg-white/10">+ Tambah</button>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 2</label>
-                            @if($foto2)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $foto2->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 2">
-                                </div>
-                            @endif
-                            <input type="file" name="foto_2" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Kondisi Fisik Barang <span class="text-rose-400">*</span></label>
+                            <textarea name="kondisi_fisik" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>{{ old('kondisi_fisik', $barang->kondisi_fisik) }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">Foto Barang 3</label>
-                            @if($foto3)
-                                <div class="mb-3">
-                                    <img src="{{ asset('storage/' . $foto3->foto_path) }}" class="w-24 h-24 object-cover rounded-lg border border-white/10" alt="Foto 3">
-                                </div>
-                            @endif
-                            <input type="file" name="foto_3" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Perkiraan Nilai Taksiran (Rp) <span class="text-rose-400">*</span></label>
+                            <input type="text" name="taksiran" id="input_taksiran" value="{{ old('taksiran', number_format($barang->taksiran, 0, '', '')) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500 font-bold text-lg" required>
                         </div>
                     </div>
                 </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="btn-gradient w-full py-4 text-lg">
-                        Simpan Perubahan
-                    </button>
+                <div class="glass-card p-6">
+                    <h3 class="text-base font-semibold text-amber-400 mb-5">Foto Barang</h3>
+                    @php
+                        $foto1 = $barang->fotoBarang->where('keterangan','Foto 1')->first();
+                        $foto2 = $barang->fotoBarang->where('keterangan','Foto 2')->first();
+                        $foto3 = $barang->fotoBarang->where('keterangan','Foto 3')->first();
+                    @endphp
+                    <div class="grid grid-cols-3 gap-4">
+                        @foreach([['foto_1',$foto1,'Foto 1'],['foto_2',$foto2,'Foto 2'],['foto_3',$foto3,'Foto 3']] as [$key,$foto,$label])
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">{{ $label }}</label>
+                            @if($foto)<div class="mb-2"><img src="{{ asset('storage/'.$foto->foto_path) }}" class="w-full h-16 object-cover rounded-lg border border-white/10"></div>@endif
+                            <input type="file" name="{{ $key }}" class="w-full text-slate-400 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                        </div>
+                        @endforeach
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2">Kosongkan jika tidak ingin mengubah foto.</p>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
-    @endsection
+        <div class="flex justify-end gap-3 mt-6">
+            <a href="{{ route('barang.index') }}" class="glass px-6 py-3 rounded-xl text-sm text-slate-300 hover:bg-white/10 transition font-medium">Batal</a>
+            <button type="submit" class="btn-gradient px-8 py-3 rounded-xl text-sm font-semibold">Perbarui Barang Jaminan</button>
+        </div>
+    </form>
+</div>
+<script>
+const kelengkapanMap = {elektronik:['Nota Pembelian','Box','Surat Garansi','Charger'],emas:['Nota Pembelian','Certieye/Sertifikat'],kendaraan:['STNK','BPKB']};
+const checkedItems = new Set({!! json_encode(old('kelengkapan', $barang->kelengkapan ?? [])) !!});
+function renderKelengkapan(kategori){const c=document.getElementById('kelengkapan_container');c.innerHTML='';const items=kelengkapanMap[kategori]||[];items.forEach(i=>{c.insertAdjacentHTML('beforeend',makeCheckbox(i,checkedItems.has(i)?'checked':''))});checkedItems.forEach(i=>{if(!items.includes(i))c.insertAdjacentHTML('beforeend',makeCheckbox(i,'checked'))});}
+function makeCheckbox(l,ch){return `<label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" name="kelengkapan[]" value="${l}" ${ch} class="w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-sky-500 focus:ring-sky-500"><span class="text-sm text-slate-300">${l}</span></label>`;}
+function addKelengkapan(){const i=document.getElementById('kelengkapan_lainnya');const v=i.value.trim();if(!v)return;document.getElementById('kelengkapan_container').insertAdjacentHTML('beforeend',makeCheckbox(v,'checked'));i.value='';}
+document.getElementById('kategori_select').addEventListener('change',function(){renderKelengkapan(this.value);});
+document.addEventListener('DOMContentLoaded',()=>{const k=document.getElementById('kategori_select').value;if(k)renderKelengkapan(k);const inp=document.getElementById('input_taksiran');let v=inp.value.replace(/\D/g,'');if(v)inp.value=parseInt(v).toLocaleString('id-ID');inp.addEventListener('input',function(){let v=this.value.replace(/\D/g,'');this.value=v?parseInt(v).toLocaleString('id-ID'):'';});inp.closest('form').addEventListener('submit',function(){inp.value=inp.value.replace(/\D/g,'');});});
+</script>
+@endsection
 </x-app-layout>

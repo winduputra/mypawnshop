@@ -56,25 +56,34 @@ class BarangController extends Controller
     public function create()
     {
         $nasabahs = $this->getNasabahScope()->get();
-        return view('barang.create', compact('nasabahs'));
+        $nextId = (Barang::max('id') ?? 0) + 1;
+        return view('barang.create', compact('nasabahs', 'nextId'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nasabah_id' => 'required|exists:nasabah,id',
-            'nama_barang' => 'required',
-            'kategori' => 'required|in:emas,elektronik,kendaraan',
-            'deskripsi' => 'nullable',
-            'taksiran' => 'required|numeric|min:0',
-            'foto_1' => 'required|image|max:2048', // Minimal 1 foto wajib
-            'foto_2' => 'nullable|image|max:2048',
-            'foto_3' => 'nullable|image|max:2048',
+            'nasabah_id'    => 'required|exists:nasabah,id',
+            'nama_barang'   => 'required',
+            'kategori'      => 'required|in:emas,elektronik,kendaraan',
+            'merk_type'     => 'nullable',
+            'nomor_seri'    => 'nullable',
+            'spesifikasi'   => 'nullable',
+            'kelengkapan'   => 'nullable|array',
+            'kondisi_fisik' => 'nullable',
+            'deskripsi'     => 'nullable',
+            'taksiran'      => 'required|numeric|min:0',
+            'foto_1'        => 'required|image|max:2048',
+            'foto_2'        => 'nullable|image|max:2048',
+            'foto_3'        => 'nullable|image|max:2048',
         ]);
 
-        $barang = Barang::create($request->only([
-            'nasabah_id', 'nama_barang', 'kategori', 'deskripsi', 'taksiran'
-        ]));
+        $data = $request->only([
+            'nasabah_id', 'nama_barang', 'kategori', 'merk_type',
+            'nomor_seri', 'spesifikasi', 'kondisi_fisik', 'deskripsi', 'taksiran',
+        ]);
+        $data['kelengkapan'] = $request->input('kelengkapan', []);
+        $barang = Barang::create($data);
 
         $fotos = ['foto_1', 'foto_2', 'foto_3'];
 
@@ -115,19 +124,27 @@ class BarangController extends Controller
         }
 
         $request->validate([
-            'nasabah_id' => 'required|exists:nasabah,id',
-            'nama_barang' => 'required',
-            'kategori' => 'required|in:emas,elektronik,kendaraan',
-            'deskripsi' => 'nullable',
-            'taksiran' => 'required|numeric|min:0',
-            'foto_1' => 'nullable|image|max:2048',
-            'foto_2' => 'nullable|image|max:2048',
-            'foto_3' => 'nullable|image|max:2048',
+            'nasabah_id'    => 'required|exists:nasabah,id',
+            'nama_barang'   => 'required',
+            'kategori'      => 'required|in:emas,elektronik,kendaraan',
+            'merk_type'     => 'nullable',
+            'nomor_seri'    => 'nullable',
+            'spesifikasi'   => 'nullable',
+            'kelengkapan'   => 'nullable|array',
+            'kondisi_fisik' => 'nullable',
+            'deskripsi'     => 'nullable',
+            'taksiran'      => 'required|numeric|min:0',
+            'foto_1'        => 'nullable|image|max:2048',
+            'foto_2'        => 'nullable|image|max:2048',
+            'foto_3'        => 'nullable|image|max:2048',
         ]);
 
-        $barang->update($request->only([
-            'nasabah_id', 'nama_barang', 'kategori', 'deskripsi', 'taksiran'
-        ]));
+        $data = $request->only([
+            'nasabah_id', 'nama_barang', 'kategori', 'merk_type',
+            'nomor_seri', 'spesifikasi', 'kondisi_fisik', 'deskripsi', 'taksiran',
+        ]);
+        $data['kelengkapan'] = $request->input('kelengkapan', []);
+        $barang->update($data);
 
         $fotos = ['foto_1' => 'Foto 1', 'foto_2' => 'Foto 2', 'foto_3' => 'Foto 3'];
 
