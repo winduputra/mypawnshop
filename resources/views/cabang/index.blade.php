@@ -4,11 +4,11 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-white">Data Cabang</h1>
+            <h1 class="text-2xl font-semibold text-slate-800">Data Cabang</h1>
             <p class="text-sm text-gray-400 mt-1">Kelola data cabang MyPawnShop</p>
         </div>
         <div>
-            <a href="{{ route('cabang.create') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors duration-200 flex items-center space-x-2">
+            <a href="{{ route('cabang.create') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-800 rounded-xl transition-colors duration-200 flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -23,10 +23,10 @@
     </div>
     @endif
 
-    <div class="bg-indigo-950/20 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+    <div class="bg-indigo-950/20 backdrop-blur-xl border border-slate-300 rounded-2xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-gray-300">
-                <thead class="bg-white/5 border-b border-white/10 text-gray-400">
+                <thead class="bg-white border-b border-slate-300 text-gray-400">
                     <tr>
                         <th class="px-6 py-4 font-medium">No</th>
                         <th class="px-6 py-4 font-medium">Nama Cabang</th>
@@ -35,11 +35,11 @@
                         <th class="px-6 py-4 font-medium text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-slate-200">
                     @forelse($cabangs as $index => $cabang)
-                    <tr class="hover:bg-white/5 transition-colors duration-200">
+                    <tr class="hover:bg-white transition-colors duration-200">
                         <td class="px-6 py-4">{{ $index + 1 }}</td>
-                        <td class="px-6 py-4 font-medium text-white">{{ $cabang->nama_cabang }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-800">{{ $cabang->nama_cabang }}</td>
                         <td class="px-6 py-4">{{ $cabang->alamat ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $cabang->telepon ?? '-' }}</td>
                         <td class="px-6 py-4 text-right">

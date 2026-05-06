@@ -13,6 +13,20 @@
 
         <!-- Scripts -->
         <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: {
+                                green: '#084C35',
+                                gold: '#D6A639',
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
         <style type="text/tailwindcss">
             body {
                 @apply bg-[#0f172a] text-slate-200;
@@ -29,10 +43,8 @@
     <body class="font-sans antialiased bg-[#0f172a] text-slate-200">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[#0f172a]">
             <div class="mb-8">
-                <a href="/">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-                        MyPawnShop
-                    </h1>
+                <a href="/" class="flex flex-col items-center justify-center">
+                    <img src="{{ asset('images/logo.jpeg') }}" alt="Harmans Gadai Syariah" class="h-32 w-auto object-contain rounded-xl shadow-lg mb-4" />
                 </a>
             </div>
 

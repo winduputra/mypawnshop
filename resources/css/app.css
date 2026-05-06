@@ -4,31 +4,29 @@
 
 @layer base {
     :root {
-        --bg-dark: #0f172a;
-        --card-bg: rgba(30, 41, 59, 0.7);
-        --accent-primary: #38bdf8;
-        --accent-secondary: #818cf8;
+        --bg-dark: #f8f9fa;
+        --card-bg: #ffffff;
+        --accent-primary: #18181b;
+        --accent-secondary: #d97706;
     }
 
     body {
-        @apply bg-[#0f172a] text-slate-200;
+        @apply bg-[#f8f9fa] text-slate-800;
     }
 }
 
 @layer components {
     .glass {
-        background: rgba(30, 41, 59, 0.6);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
     }
 
     .glass-card {
-        @apply glass rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:bg-slate-800/80;
+        @apply bg-white rounded-2xl shadow-sm border border-slate-200 transition-all duration-300;
     }
 
     .btn-gradient {
-        @apply bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-semibold py-2 px-4 rounded-xl transition-all shadow-lg hover:shadow-sky-500/25;
+        @apply bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl transition-all shadow-sm;
     }
 
     .sidebar-link {
@@ -36,6 +34,6 @@
     }
 
     .sidebar-link.active {
-        @apply bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-400 border-r-4 border-sky-500;
+        @apply bg-gradient-to-r from-brand-green/40 to-transparent text-brand-gold border-r-4 border-brand-gold;
     }
 }

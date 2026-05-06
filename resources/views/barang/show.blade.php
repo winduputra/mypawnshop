@@ -7,7 +7,7 @@
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             Kembali ke Daftar
         </a>
-        <a href="{{ route('barang.edit', $barang) }}" class="glass px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10 flex items-center">
+        <a href="{{ route('barang.edit', $barang) }}" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10 flex items-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Edit Barang
         </a>
@@ -15,7 +15,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- LEFT --}}
         <div class="space-y-6">
-            <div class="glass-card p-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-5">Identitas Barang</h3>
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
@@ -33,21 +33,21 @@
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Nasabah</p>
-                        <p class="text-sm text-white font-medium">{{ $barang->nasabah->nama }}</p>
+                        <p class="text-sm text-slate-800 font-medium">{{ $barang->nasabah->nama }}</p>
                         <p class="text-xs text-sky-400 font-mono">{{ $barang->nasabah->nik }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Merk / Type</p>
-                        <p class="text-sm text-white">{{ $barang->nama_barang }}</p>
-                        @if($barang->merk_type)<p class="text-xs text-slate-400">{{ $barang->merk_type }}</p>@endif
+                        <p class="text-sm text-slate-800">{{ $barang->nama_barang }}</p>
+                        @if($barang->merk_type)<p class="text-xs text-slate-500">{{ $barang->merk_type }}</p>@endif
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Nomor Seri / Rangka / Polisi</p>
-                        <p class="text-sm text-white font-mono">{{ $barang->nomor_seri ?: '-' }}</p>
+                        <p class="text-sm text-slate-800 font-mono">{{ $barang->nomor_seri ?: '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Spesifikasi</p>
-                        <p class="text-sm text-white">{{ $barang->spesifikasi ?: '-' }}</p>
+                        <p class="text-sm text-slate-800">{{ $barang->spesifikasi ?: '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Perkiraan Nilai Taksiran</p>
@@ -58,7 +58,7 @@
         </div>
         {{-- RIGHT --}}
         <div class="space-y-6">
-            <div class="glass-card p-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-5">Kelengkapan & Kondisi</h3>
                 <div class="space-y-4">
                     <div>
@@ -78,17 +78,17 @@
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Kondisi Fisik</p>
-                        <p class="text-sm text-white leading-relaxed mt-1">{{ $barang->kondisi_fisik ?: ($barang->deskripsi ?: 'Tidak ada deskripsi.') }}</p>
+                        <p class="text-sm text-slate-800 leading-relaxed mt-1">{{ $barang->kondisi_fisik ?: ($barang->deskripsi ?: 'Tidak ada deskripsi.') }}</p>
                     </div>
                 </div>
             </div>
-            <div class="glass-card p-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-5">Galeri Foto</h3>
                 <div class="grid grid-cols-3 gap-3">
                     @forelse($barang->fotoBarang as $foto)
-                    <a href="{{ asset('storage/'.$foto->foto_path) }}" target="_blank" class="relative group aspect-square rounded-xl overflow-hidden border border-white/5 bg-slate-800">
+                    <a href="{{ asset('storage/'.$foto->foto_path) }}" target="_blank" class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white">
                         <img src="{{ asset('storage/'.$foto->foto_path) }}" class="w-full h-full object-cover group-hover:opacity-80 transition">
-                        <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-center text-[10px] text-white backdrop-blur-sm">{{ $foto->keterangan }}</div>
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-center text-[10px] text-slate-800 backdrop-blur-sm">{{ $foto->keterangan }}</div>
                     </a>
                     @empty
                     <p class="text-slate-500 text-sm col-span-3">Belum ada foto.</p>

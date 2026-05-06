@@ -24,13 +24,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {{-- Ringkasan Nasabah & Barang --}}
-            <div class="glass-card p-6 space-y-5">
-                <h3 class="text-base font-semibold text-white border-b border-white/10 pb-3">Informasi Pinjaman</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
+                <h3 class="text-base font-semibold text-slate-800 border-b border-slate-300 pb-3">Informasi Pinjaman</h3>
 
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Nasabah (Rahin)</p>
-                    <p class="text-white font-semibold text-sm">{{ $lelang->transaksiRahn->nasabah->nama }}</p>
-                    <p class="text-xs text-slate-400">{{ $lelang->transaksiRahn->nasabah->telepon }}</p>
+                    <p class="text-slate-800 font-semibold text-sm">{{ $lelang->transaksiRahn->nasabah->nama }}</p>
+                    <p class="text-xs text-slate-500">{{ $lelang->transaksiRahn->nasabah->telepon }}</p>
                 </div>
 
                 <div>
@@ -38,49 +38,49 @@
                     <ul class="space-y-1">
                         @foreach($lelang->transaksiRahn->detailTransaksi as $dt)
                         <li class="flex justify-between text-sm">
-                            <span class="text-slate-300">{{ $dt->barang->nama_barang }}</span>
+                            <span class="text-slate-600">{{ $dt->barang->nama_barang }}</span>
                             <span class="text-sky-400 font-mono">Rp {{ number_format($dt->taksiran_item, 0, ',', '.') }}</span>
                         </li>
                         @endforeach
                     </ul>
                 </div>
 
-                <div class="pt-3 border-t border-white/10 space-y-2 text-sm">
+                <div class="pt-3 border-t border-slate-300 space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Total Pinjaman Awal</span>
-                        <span class="text-white font-mono">Rp {{ number_format($lelang->transaksiRahn->total_pinjaman, 0, ',', '.') }}</span>
+                        <span class="text-slate-500">Total Pinjaman Awal</span>
+                        <span class="text-slate-800 font-mono">Rp {{ number_format($lelang->transaksiRahn->total_pinjaman, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">No. Transaksi</span>
+                        <span class="text-slate-500">No. Transaksi</span>
                         <span class="text-sky-400 font-mono font-bold">{{ $lelang->transaksiRahn->no_transaksi }}</span>
                     </div>
                 </div>
             </div>
 
             {{-- Ringkasan Lelang --}}
-            <div class="glass-card p-6 space-y-4">
-                <h3 class="text-base font-semibold text-white border-b border-white/10 pb-3">Detail Hasil Lelang</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <h3 class="text-base font-semibold text-slate-800 border-b border-slate-300 pb-3">Detail Hasil Lelang</h3>
 
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Pembeli</span>
-                        <span class="text-white font-medium">{{ $lelang->pembeli }}</span>
+                        <span class="text-slate-500">Pembeli</span>
+                        <span class="text-slate-800 font-medium">{{ $lelang->pembeli }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Tanggal Lelang</span>
-                        <span class="text-white">{{ \Carbon\Carbon::parse($lelang->tanggal_lelang)->translatedFormat('d F Y') }}</span>
+                        <span class="text-slate-500">Tanggal Lelang</span>
+                        <span class="text-slate-800">{{ \Carbon\Carbon::parse($lelang->tanggal_lelang)->translatedFormat('d F Y') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Harga Terjual</span>
-                        <span class="text-white font-mono font-semibold">Rp {{ number_format($lelang->harga_lelang, 0, ',', '.') }}</span>
+                        <span class="text-slate-500">Harga Terjual</span>
+                        <span class="text-slate-800 font-mono font-semibold">Rp {{ number_format($lelang->harga_lelang, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Biaya Lelang</span>
-                        <span class="text-white font-mono">Rp {{ number_format($lelang->biaya_lelang, 0, ',', '.') }}</span>
+                        <span class="text-slate-500">Biaya Lelang</span>
+                        <span class="text-slate-800 font-mono">Rp {{ number_format($lelang->biaya_lelang, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
-                <div class="pt-3 border-t border-white/10 space-y-3">
+                <div class="pt-3 border-t border-slate-300 space-y-3">
                     @if($lelang->sisa_untuk_nasabah > 0)
                     <div class="flex justify-between items-center rounded-xl px-4 py-3"
                          style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">
@@ -121,7 +121,7 @@
         {{-- Action Buttons --}}
         <div class="flex flex-col sm:flex-row gap-4">
             <a href="{{ route('lelang.cetak-pdf', $lelang) }}"
-               class="flex-1 btn-gradient py-4 rounded-xl text-base text-center flex items-center justify-center space-x-2">
+               class="flex-1 bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all py-4 rounded-xl text-base text-center flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -129,7 +129,7 @@
                 <span>Cetak Berita Acara Lelang (PDF)</span>
             </a>
             <a href="{{ route('lelang.index') }}"
-               class="flex-1 py-4 rounded-xl text-base text-center text-slate-400 hover:text-white border border-white/10 hover:border-white/20 transition-colors flex items-center justify-center">
+               class="flex-1 py-4 rounded-xl text-base text-center text-slate-500 hover:text-slate-800 border border-slate-300 hover:border-white/20 transition-colors flex items-center justify-center">
                 Kembali ke Daftar Lelang
             </a>
         </div>

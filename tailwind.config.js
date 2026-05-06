@@ -14,6 +14,12 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                brand: {
+                    green: '#084C35', // Dark green from HARMANS
+                    gold: '#D6A639',  // Gold from GADAI SYARIAH
+                }
+            }
         },
     },
 

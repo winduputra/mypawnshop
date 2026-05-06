@@ -8,27 +8,27 @@
             Kembali ke Daftar
         </a>
 
-        <div class="glass-card p-8">
-            <h3 class="text-xl font-bold text-white mb-6">Edit Akun Kasir</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">Edit Akun Kasir</h3>
 
             <form action="{{ route('kasir.update', $kasir) }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PUT')
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Nama Lengkap</label>
-                    <input type="text" name="name" value="{{ old('name', $kasir->name) }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                    <label class="block text-sm font-medium text-slate-500 mb-2">Nama Lengkap</label>
+                    <input type="text" name="name" value="{{ old('name', $kasir->name) }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-sky-500" required>
                     @error('name') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Email</label>
-                    <input type="email" name="email" value="{{ old('email', $kasir->email) }}" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                    <label class="block text-sm font-medium text-slate-500 mb-2">Email</label>
+                    <input type="email" name="email" value="{{ old('email', $kasir->email) }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-sky-500" required>
                     @error('email') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Cabang</label>
-                    <select name="cabang_id" class="w-full glass bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500" required>
+                    <label class="block text-sm font-medium text-slate-500 mb-2">Cabang</label>
+                    <select name="cabang_id" class="w-full bg-white border border-slate-200 bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-sky-500" required>
                         <option value="">-- Pilih Cabang --</option>
                         @foreach($cabangs as $cabang)
                             <option value="{{ $cabang->id }}" {{ old('cabang_id', $kasir->cabang_id) == $cabang->id ? 'selected' : '' }}>
@@ -40,18 +40,18 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Password Baru <span class="text-slate-600">(Kosongkan jika tidak ingin ubah)</span></label>
-                    <input type="password" name="password" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">
+                    <label class="block text-sm font-medium text-slate-500 mb-2">Password Baru <span class="text-slate-600">(Kosongkan jika tidak ingin ubah)</span></label>
+                    <input type="password" name="password" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-sky-500">
                     @error('password') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Konfirmasi Password</label>
-                    <input type="password" name="password_confirmation" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white focus:border-sky-500 focus:ring-sky-500">
+                    <label class="block text-sm font-medium text-slate-500 mb-2">Konfirmasi Password</label>
+                    <input type="password" name="password_confirmation" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-sky-500">
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" class="btn-gradient w-full py-4 text-lg">
+                    <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all w-full py-4 text-lg">
                         Simpan Perubahan
                     </button>
                 </div>

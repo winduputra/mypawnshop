@@ -18,7 +18,10 @@
                 theme: {
                     extend: {
                         colors: {
-                            dark: '#0f172a',
+                            brand: {
+                                green: '#084C35',
+                                gold: '#D6A639',
+                            }
                         }
                     }
                 }
@@ -29,8 +32,8 @@
                 :root {
                     --bg-dark: #0f172a;
                     --card-bg: rgba(30, 41, 59, 0.7);
-                    --accent-primary: #38bdf8;
-                    --accent-secondary: #818cf8;
+                    --accent-primary: #084C35;
+                    --accent-secondary: #D6A639;
                 }
                 body {
                     @apply bg-[#0f172a] text-slate-200;
@@ -48,13 +51,13 @@
                     @apply glass rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:bg-slate-800/80;
                 }
                 .btn-gradient {
-                    @apply bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-semibold py-2 px-4 rounded-xl transition-all shadow-lg hover:shadow-sky-500/25;
+                    @apply bg-gradient-to-r from-brand-green to-emerald-700 hover:from-emerald-800 hover:to-emerald-600 text-brand-gold font-bold py-2 px-4 rounded-xl transition-all shadow-lg hover:shadow-brand-green/25;
                 }
                 .sidebar-link {
                     @apply flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all;
                 }
                 .sidebar-link.active {
-                    @apply bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-sky-400 border-r-4 border-sky-500;
+                    @apply bg-gradient-to-r from-brand-green/40 to-transparent text-brand-gold border-r-4 border-brand-gold;
                 }
             }
         </style>
@@ -62,14 +65,12 @@
         <script src="{{ asset('js/currency-format.js') }}"></script>
         @stack('styles')
     </head>
-    <body class="font-sans antialiased bg-[#0f172a] text-slate-200">
+    <body class="font-sans antialiased bg-[#f8f9fa] text-slate-800">
         <div class="min-h-screen flex">
             <!-- Sidebar -->
-            <aside class="w-64 glass border-r border-white/5 flex flex-col sticky top-0 h-screen">
-                <div class="p-6">
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-                        MyPawnShop
-                    </h1>
+            <aside class="w-64 bg-[#111111] border-r border-white/5 flex flex-col sticky top-0 h-screen">
+                <div class="p-6 flex justify-center border-b border-white/5">
+                    <img src="{{ asset('images/logo.jpeg') }}" alt="Harmans Gadai Syariah" class="h-20 w-auto object-contain rounded-lg" />
                 </div>
 
                 <nav class="flex-1 px-4 space-y-2 mt-4">
@@ -142,8 +143,8 @@
             <main class="flex-1 p-8 overflow-y-auto">
                 <header class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-xl font-semibold text-white">@yield('header_title', 'Dashboard')</h2>
-                        <p class="text-sm text-slate-400">Selamat datang kembali, {{ Auth::user()->name }}</p>
+                        <h2 class="text-xl font-semibold text-slate-800">@yield('header_title', 'Dashboard')</h2>
+                        <p class="text-sm text-slate-500">Selamat datang kembali, {{ Auth::user()->name }}</p>
                     </div>
                 </header>
 

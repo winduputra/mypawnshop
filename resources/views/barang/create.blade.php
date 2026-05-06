@@ -18,22 +18,22 @@
         Kembali ke Daftar
     </a>
     <div class="mb-6">
-        <h2 class="text-2xl font-bold text-white">Registrasi Barang Jaminan</h2>
-        <p class="text-sm text-slate-400 mt-1">Lengkapi data barang jaminan (Rahn) di bawah ini.</p>
+        <h2 class="text-2xl font-bold text-slate-800">Registrasi Barang Jaminan</h2>
+        <p class="text-sm text-slate-500 mt-1">Lengkapi data barang jaminan (Rahn) di bawah ini.</p>
     </div>
     <form action="{{ route('barang.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {{-- LEFT: Identitas Barang --}}
-            <div class="glass-card p-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-5">Identitas Barang</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">ID Barang Jaminan (Otomatis)</label>
-                        <input type="text" value="BRG-{{ str_pad($nextId, 5, '0', STR_PAD_LEFT) }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white font-mono text-sm" disabled>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">ID Barang Jaminan (Otomatis)</label>
+                        <input type="text" value="BRG-{{ str_pad($nextId, 5, '0', STR_PAD_LEFT) }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 font-mono text-sm" disabled>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Pilih Nasabah <span class="text-rose-400">*</span></label>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Pilih Nasabah <span class="text-rose-400">*</span></label>
                         <select name="nasabah_id" id="nasabah_id" class="w-full" required>
                             <option value="">-- Pilih Nasabah --</option>
                             @foreach($nasabahs as $nasabah)
@@ -42,72 +42,72 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Jenis Barang <span class="text-rose-400">*</span></label>
-                        <select name="kategori" id="kategori_select" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required>
-                            <option value="" disabled {{ !old('kategori') ? 'selected' : '' }} class="bg-slate-800">Pilih Jenis...</option>
-                            <option value="elektronik" {{ old('kategori') == 'elektronik' ? 'selected' : '' }} class="bg-slate-800">Elektronik</option>
-                            <option value="emas" {{ old('kategori') == 'emas' ? 'selected' : '' }} class="bg-slate-800">Emas</option>
-                            <option value="kendaraan" {{ old('kategori') == 'kendaraan' ? 'selected' : '' }} class="bg-slate-800">Kendaraan</option>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Jenis Barang <span class="text-rose-400">*</span></label>
+                        <select name="kategori" id="kategori_select" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="" disabled {{ !old('kategori') ? 'selected' : '' }} class="bg-white">Pilih Jenis...</option>
+                            <option value="elektronik" {{ old('kategori') == 'elektronik' ? 'selected' : '' }} class="bg-white">Elektronik</option>
+                            <option value="emas" {{ old('kategori') == 'emas' ? 'selected' : '' }} class="bg-white">Emas</option>
+                            <option value="kendaraan" {{ old('kategori') == 'kendaraan' ? 'selected' : '' }} class="bg-white">Kendaraan</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Merk / Type Barang <span class="text-rose-400">*</span></label>
-                        <input type="text" name="nama_barang" value="{{ old('nama_barang') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Contoh: iPhone 15 Pro Max 256GB">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Merk / Type Barang <span class="text-rose-400">*</span></label>
+                        <input type="text" name="nama_barang" value="{{ old('nama_barang') }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Contoh: iPhone 15 Pro Max 256GB">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Merk / Type (Detail)</label>
-                        <input type="text" name="merk_type" value="{{ old('merk_type') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Contoh: Apple / A2849">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Merk / Type (Detail)</label>
+                        <input type="text" name="merk_type" value="{{ old('merk_type') }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Contoh: Apple / A2849">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1" id="label_nomor_seri">Nomor Seri / Rangka / Polisi</label>
-                        <input type="text" name="nomor_seri" value="{{ old('nomor_seri') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Masukkan nomor identitas barang">
+                        <label class="block text-xs font-medium text-slate-500 mb-1" id="label_nomor_seri">Nomor Seri / Rangka / Polisi</label>
+                        <input type="text" name="nomor_seri" value="{{ old('nomor_seri') }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Masukkan nomor identitas barang">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Spesifikasi</label>
-                        <textarea name="spesifikasi" rows="2" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Detail spesifikasi barang">{{ old('spesifikasi') }}</textarea>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Spesifikasi</label>
+                        <textarea name="spesifikasi" rows="2" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Detail spesifikasi barang">{{ old('spesifikasi') }}</textarea>
                     </div>
                 </div>
             </div>
             {{-- RIGHT: Kelengkapan, Kondisi, Taksiran, Foto --}}
             <div class="space-y-6">
-                <div class="glass-card p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h3 class="text-base font-semibold text-amber-400 mb-5">Kelengkapan & Kondisi</h3>
                     <div class="space-y-4">
                         {{-- Dynamic Kelengkapan Checkboxes --}}
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-2">Kelengkapan Barang</label>
+                            <label class="block text-xs font-medium text-slate-500 mb-2">Kelengkapan Barang</label>
                             <div id="kelengkapan_container" class="space-y-2">
                                 {{-- Populated by JS based on kategori --}}
                             </div>
                             <div class="mt-2 flex gap-2">
-                                <input type="text" id="kelengkapan_lainnya" class="flex-1 glass bg-white/5 border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Lainnya...">
-                                <button type="button" onclick="addKelengkapan()" class="glass px-3 py-2 rounded-lg text-xs text-sky-400 hover:bg-white/10">+ Tambah</button>
+                                <input type="text" id="kelengkapan_lainnya" class="flex-1 bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" placeholder="Lainnya...">
+                                <button type="button" onclick="addKelengkapan()" class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs text-sky-400 hover:bg-white/10">+ Tambah</button>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Kondisi Fisik Barang <span class="text-rose-400">*</span></label>
-                            <textarea name="kondisi_fisik" rows="3" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Deskripsikan kondisi fisik barang secara detail...">{{ old('kondisi_fisik') }}</textarea>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Kondisi Fisik Barang <span class="text-rose-400">*</span></label>
+                            <textarea name="kondisi_fisik" rows="3" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500" required placeholder="Deskripsikan kondisi fisik barang secara detail...">{{ old('kondisi_fisik') }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Perkiraan Nilai Taksiran (Rp) <span class="text-rose-400">*</span></label>
-                            <input type="text" name="taksiran" id="input_taksiran" value="{{ old('taksiran') }}" class="w-full glass bg-white/5 border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:ring-sky-500 font-bold text-lg" required placeholder="0">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Perkiraan Nilai Taksiran (Rp) <span class="text-rose-400">*</span></label>
+                            <input type="text" name="taksiran" id="input_taksiran" value="{{ old('taksiran') }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500 font-bold text-lg" required placeholder="0">
                         </div>
                     </div>
                 </div>
-                <div class="glass-card p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h3 class="text-base font-semibold text-amber-400 mb-5">Foto Barang</h3>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Foto 1 <span class="text-rose-400">*</span></label>
-                            <input type="file" name="foto_1" class="w-full text-slate-400 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400" required>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Foto 1 <span class="text-rose-400">*</span></label>
+                            <input type="file" name="foto_1" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Foto 2</label>
-                            <input type="file" name="foto_2" class="w-full text-slate-400 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Foto 2</label>
+                            <input type="file" name="foto_2" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Foto 3</label>
-                            <input type="file" name="foto_3" class="w-full text-slate-400 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Foto 3</label>
+                            <input type="file" name="foto_3" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
                         </div>
                     </div>
                     <p class="text-[10px] text-slate-500 mt-2">Minimal 1 foto wajib. Maks 2MB per file (JPG/PNG).</p>
@@ -115,8 +115,8 @@
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-            <a href="{{ route('barang.index') }}" class="glass px-6 py-3 rounded-xl text-sm text-slate-300 hover:bg-white/10 transition font-medium">Batal</a>
-            <button type="submit" class="btn-gradient px-8 py-3 rounded-xl text-sm font-semibold">Simpan Barang Jaminan</button>
+            <a href="{{ route('barang.index') }}" class="bg-white border border-slate-200 px-6 py-3 rounded-xl text-sm text-slate-600 hover:bg-white/10 transition font-medium">Batal</a>
+            <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-8 py-3 rounded-xl text-sm font-semibold">Simpan Barang Jaminan</button>
         </div>
     </form>
 </div>
@@ -149,8 +149,8 @@ function renderKelengkapan(kategori) {
 
 function makeCheckbox(label, checked) {
     return `<label class="flex items-center gap-2 cursor-pointer select-none">
-        <input type="checkbox" name="kelengkapan[]" value="${label}" ${checked} class="w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-sky-500 focus:ring-sky-500">
-        <span class="text-sm text-slate-300">${label}</span>
+        <input type="checkbox" name="kelengkapan[]" value="${label}" ${checked} class="w-3.5 h-3.5 rounded border-white/20 bg-white text-sky-500 focus:ring-sky-500">
+        <span class="text-sm text-slate-600">${label}</span>
     </label>`;
 }
 

@@ -3,23 +3,23 @@
 
     @section('content')
     <div class="mb-6 flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-white">Daftar Gadai</h3>
-        <a href="{{ route('transaksi.create') }}" class="btn-gradient">
+        <h3 class="text-lg font-semibold text-slate-800">Daftar Gadai</h3>
+        <a href="{{ route('transaksi.create') }}" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all">
             Transaksi Baru
         </a>
     </div>
 
     <!-- Filter Bar -->
-    <div class="glass-card p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
                 <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Cari Nama / No. Kontrak</label>
                 <input type="text" id="filterSearch" placeholder="Ketik untuk mencari..."
-                    class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                    class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500">
             </div>
             <div>
                 <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Status</label>
-                <select id="filterStatus" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                <select id="filterStatus" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500">
                     <option value="">Semua Status</option>
                     <option value="aktif">Aktif</option>
                     <option value="diperpanjang">Diperpanjang</option>
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <label class="block text-xs text-slate-500 mb-1 uppercase font-semibold">Jatuh Tempo</label>
-                <select id="filterJatuhTempo" class="w-full glass bg-white/5 border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-sky-500 focus:ring-sky-500">
+                <select id="filterJatuhTempo" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:border-sky-500 focus:ring-sky-500">
                     <option value="">Semua</option>
                     <option value="segera">Segera (≤ 7 hari)</option>
                     <option value="lewat">Sudah Lewat</option>
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <div class="glass-card overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto" id="tableContainer">
             @include('transaksi._table')
         </div>

@@ -1,6 +1,6 @@
 <table class="w-full text-left">
     <thead>
-        <tr class="text-xs font-semibold text-slate-500 uppercase bg-white/5">
+        <tr class="text-xs font-semibold text-slate-500 uppercase bg-white">
             <th class="px-6 py-4">No. Transaksi</th>
             <th class="px-6 py-4">Nasabah</th>
             <th class="px-6 py-4">Pinjaman</th>
@@ -9,25 +9,25 @@
             <th class="px-6 py-4 text-right">Aksi</th>
         </tr>
     </thead>
-    <tbody class="divide-y divide-white/5 text-sm">
+    <tbody class="divide-y divide-slate-200 text-sm">
         @forelse($transactions as $trx)
-        <tr class="hover:bg-white/5 transition-colors">
+        <tr class="hover:bg-white transition-colors">
             <td class="px-6 py-4 font-mono text-sky-400 font-bold">{{ $trx->no_transaksi }}</td>
             <td class="px-6 py-4">
-                <div class="text-white font-medium">{{ $trx->nasabah->nama }}</div>
+                <div class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</div>
                 <div class="text-xs text-slate-500">{{ $trx->nasabah->nik }}</div>
             </td>
-            <td class="px-6 py-4 text-white">
+            <td class="px-6 py-4 text-slate-800">
                 <span class="block">Rp {{ number_format($trx->total_pinjaman, 0, ',', '.') }}</span>
                 <span class="text-xs text-slate-500">Ujrah: {{ number_format($trx->ujrah_per_30hari, 0, ',', '.') }}/30hr</span>
             </td>
             <td class="px-6 py-4">
-                <span class="block text-white">{{ $trx->tanggal_jatuh_tempo }}</span>
+                <span class="block text-slate-800">{{ $trx->tanggal_jatuh_tempo }}</span>
                 <span class="text-xs text-rose-400">Lelang: {{ $trx->tanggal_batas_lelang }}</span>
             </td>
             <td class="px-6 py-4">
-                @php $apColors=['draft'=>'bg-slate-500/10 text-slate-400','dikirim'=>'bg-blue-500/10 text-blue-400','pending'=>'bg-amber-500/10 text-amber-400','disetujui'=>'bg-emerald-500/10 text-emerald-400','ditolak'=>'bg-rose-500/10 text-rose-400']; @endphp
-                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $apColors[$trx->status_approval] ?? 'bg-slate-500/10 text-slate-400' }}">{{ ucfirst($trx->status_approval) }}</span>
+                @php $apColors=['draft'=>'bg-slate-500/10 text-slate-500','dikirim'=>'bg-blue-500/10 text-blue-400','pending'=>'bg-amber-500/10 text-amber-400','disetujui'=>'bg-emerald-500/10 text-emerald-400','ditolak'=>'bg-rose-500/10 text-rose-400']; @endphp
+                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $apColors[$trx->status_approval] ?? 'bg-slate-500/10 text-slate-500' }}">{{ ucfirst($trx->status_approval) }}</span>
                 @if($trx->status_approval === 'disetujui')
                 <span class="px-2 py-1 rounded-full text-xs font-medium ml-1
                     @if($trx->status == 'aktif') bg-sky-500/10 text-sky-400 
@@ -63,7 +63,7 @@
     </tbody>
 </table>
 @if($transactions->hasPages())
-<div class="p-6 border-t border-white/5">
+<div class="p-6 border-t border-slate-200">
     {{ $transactions->links() }}
 </div>
 @endif

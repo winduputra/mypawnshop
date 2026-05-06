@@ -1,11 +1,11 @@
 @forelse($nasabahs as $nasabah)
-<tr class="hover:bg-white/5 transition-colors">
+<tr class="hover:bg-white transition-colors">
     <td class="px-6 py-4 font-mono text-sky-400">{{ $nasabah->nik }}</td>
-    <td class="px-6 py-4 text-white font-medium">{{ $nasabah->nama }}</td>
-    <td class="px-6 py-4 text-slate-400">{{ $nasabah->telepon }}</td>
-    <td class="px-6 py-4 text-slate-400 max-w-xs truncate">{{ $nasabah->alamat }}</td>
+    <td class="px-6 py-4 text-slate-800 font-medium">{{ $nasabah->nama }}</td>
+    <td class="px-6 py-4 text-slate-500">{{ $nasabah->telepon }}</td>
+    <td class="px-6 py-4 text-slate-500 max-w-xs truncate">{{ $nasabah->alamat }}</td>
     <td class="px-6 py-4 text-right space-x-2">
-        <a href="{{ route('nasabah.show', $nasabah) }}" class="text-white/60 hover:text-white transition inline-flex items-center" title="Detail">
+        <a href="{{ route('nasabah.show', $nasabah) }}" class="text-slate-800/60 hover:text-slate-800 transition inline-flex items-center" title="Detail">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
         </a>
         <a href="{{ route('nasabah.edit', $nasabah) }}" class="text-sky-400 hover:text-sky-300 transition inline-flex items-center" title="Edit">
@@ -31,7 +31,7 @@
 @if($nasabahs->hasPages())
 <tr>
     <td colspan="5" class="p-0">
-        <div id="pagination-ajax" class="p-6 border-t border-white/5">
+        <div id="pagination-ajax" class="p-6 border-t border-slate-200">
             {{ $nasabahs->links() }}
         </div>
     </td>
