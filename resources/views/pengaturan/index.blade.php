@@ -75,6 +75,22 @@
             </div>
         </div>
 
+        {{-- No Telepon CS --}}
+        <div class="mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-base font-semibold text-amber-400 mb-5 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    No. Telepon CS (WhatsApp)
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">Nomor telepon yang muncul di pesan pengingat WhatsApp ke nasabah. Gunakan format internasional (contoh: 6281234567890).</p>
+                @php $umum = $settings['umum'] ?? collect(); @endphp
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">No. Telepon CS (format 62xxx)</label>
+                    <input type="text" name="no_telepon_cs" value="{{ $umum->firstWhere('key','no_telepon_cs')->value ?? '6281234567890' }}" class="w-full bg-white border border-slate-200 border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm" required placeholder="6281234567890">
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-end mb-8">
             <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-8 py-3 rounded-xl text-sm font-semibold">Simpan Pengaturan</button>
         </div>

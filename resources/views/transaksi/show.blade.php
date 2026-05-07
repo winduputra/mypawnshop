@@ -64,19 +64,60 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 max-w-md w-full p-8 relative">
             <button onclick="toggleModal('modalPerpanjang')" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-xl">&times;</button>
             <h3 class="text-xl font-bold text-slate-800 mb-6">Perpanjang Tenor</h3>
-            @php $detail=$transaksi->detailTransaksi->first();$kategoriStr=$detail?$detail->barang->kategori:'emas';$limits=['emas'=>11,'elektronik'=>2,'kendaraan'=>3];$maxLimit=$limits[$kategoriStr]??1;$extendCount=$transaksi->perpanjangan->count();$canExtend=$extendCount<$maxLimit; @endphp
-            @if($canExtend)
-            <div class="mb-4 p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl"><p class="text-xs text-sky-400">Terpakai: <strong>{{ $extendCount }} / {{ $maxLimit }}x</strong></p></div>
+            @php
+                $extendCount = $transaksi->perpanjangan->count();
+                $jatuhTempoDate = \Carbon\Carbon::parse($transaksi->tanggal_jatuh_tempo);
+                $todayDate = \Carbon\Carbon::today();
+                $selisihHari = $jatuhTempoDate->diffInDays($todayDate, false);
+                $isOverdue = $selisihHari > 0 && $selisihHari <= 7;
+                $isBlocked = $selisihHari > 7;
+            @endphp
+
+            {{-- Extension history count (no limit) --}}
+            <div class="mb-4 p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl">
+                <p class="text-xs text-sky-400">Perpanjangan sebelumnya: <strong>{{ $extendCount }}x</strong> (tidak ada batasan)</p>
+            </div>
+
+            @if($isBlocked)
+            {{-- Overdue > 7 hari: BLOCKED --}}
+            <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                <p class="text-sm text-rose-500 font-semibold mb-1">⚠ Perpanjangan Tidak Dapat Dilakukan</p>
+                <p class="text-xs text-rose-400">Sudah melewati {{ $selisihHari }} hari dari jatuh tempo (maks 7 hari). Barang masuk periode lelang.</p>
+            </div>
+            @elseif($isOverdue)
+            {{-- Overdue 1-7 hari: Wajib bayar 2x, dapat +50 hari --}}
+            <div class="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <p class="text-sm text-amber-600 font-semibold mb-1">⚠ Jatuh Tempo Telah Lewat {{ $selisihHari }} Hari</p>
+                <p class="text-xs text-amber-500">Wajib bayar 2x ijarah. Tenor hanya bertambah <strong>50 hari</strong> dari tanggal jatuh tempo (bukan 60 hari). Denda berupa pengurangan 10 hari.</p>
+            </div>
             <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
-                <div class="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-center">
-                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan</p>
-                    <p class="text-3xl font-bold text-slate-800 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari, 0, ',', '.') }}</p>
+                <div class="p-4 bg-rose-500/10 rounded-xl border border-rose-500/20 text-center">
+                    <p class="text-xs text-rose-400 uppercase font-semibold mb-1">Biaya Perpanjangan (2x Ijarah)</p>
+                    <p class="text-3xl font-bold text-rose-600 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari * 2, 0, ',', '.') }}</p>
+                    <p class="text-[10px] text-slate-500 mt-1">2 × Rp {{ number_format($transaksi->ujrah_per_30hari, 0, ',', '.') }} · Tenor +50 hari</p>
                 </div>
-                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-indigo-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju memperpanjang tenor.</span></label>
-                <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all w-full py-4 rounded-xl">Bayar & Perpanjang</button>
+                <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
+                    <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
+                    <div class="flex justify-between"><span>Jatuh Tempo Baru</span><span class="font-semibold text-emerald-600">{{ $jatuhTempoDate->copy()->addDays(50)->format('d/m/Y') }}</span></div>
+                </div>
+                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-amber-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju membayar 2x ijarah dan memperpanjang tenor 50 hari.</span></label>
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar 2x Ijarah & Perpanjang 50 Hari</button>
             </form>
             @else
-            <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl"><p class="text-sm text-rose-400">Batas perpanjangan tercapai ({{ $maxLimit }}x).</p></div>
+            {{-- Normal: belum jatuh tempo --}}
+            <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
+                <div class="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-center">
+                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan (1x Ijarah)</p>
+                    <p class="text-3xl font-bold text-slate-800 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari, 0, ',', '.') }}</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Tenor +30 hari dari jatuh tempo</p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
+                    <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
+                    <div class="flex justify-between"><span>Jatuh Tempo Baru</span><span class="font-semibold text-emerald-600">{{ $jatuhTempoDate->copy()->addDays(30)->format('d/m/Y') }}</span></div>
+                </div>
+                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-indigo-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju memperpanjang tenor.</span></label>
+                <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar & Perpanjang 30 Hari</button>
+            </form>
             @endif
         </div>
     </div>
@@ -142,10 +183,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-4">Riwayat Angsuran</h3>
                 <table class="w-full text-left text-sm">
-                    <thead><tr class="text-xs text-slate-500 uppercase bg-white"><th class="px-3 py-2">#</th><th class="px-3 py-2">Tanggal</th><th class="px-3 py-2 text-right">Dibayar</th><th class="px-3 py-2 text-right">Sisa</th><th class="px-3 py-2">Kasir</th><th class="px-3 py-2 text-right">Aksi</th></tr></thead>
+                    <thead><tr class="text-xs text-slate-500 uppercase bg-white"><th class="px-3 py-2">Ke-</th><th class="px-3 py-2">Tanggal</th><th class="px-3 py-2 text-right">Dibayar</th><th class="px-3 py-2 text-right">Sisa</th><th class="px-3 py-2">Kasir</th><th class="px-3 py-2 text-right">Nota</th></tr></thead>
                     <tbody class="divide-y divide-slate-200">
                     @foreach($transaksi->angsuran as $idx => $ans)
-                    <tr class="hover:bg-white"><td class="px-3 py-2 text-slate-500">{{ $idx+1 }}</td><td class="px-3 py-2 text-slate-800">{{ $ans->tanggal_bayar }}</td><td class="px-3 py-2 text-emerald-400 font-mono text-right">Rp {{ number_format($ans->jumlah_bayar,0,',','.') }}</td><td class="px-3 py-2 text-slate-800 font-mono text-right">Rp {{ number_format($ans->sisa_pinjaman,0,',','.') }}</td><td class="px-3 py-2 text-slate-500">{{ $ans->user->name }}</td><td class="px-3 py-2 text-right"><a href="{{ route('transaksi.angsuran.cetak', [$transaksi, $ans]) }}" class="text-sky-400 text-xs" target="_blank">Cetak</a></td></tr>
+                    <tr class="hover:bg-slate-50"><td class="px-3 py-2 text-slate-800 font-semibold">{{ $idx+1 }}</td><td class="px-3 py-2 text-slate-800">{{ $ans->tanggal_bayar }}</td><td class="px-3 py-2 text-emerald-400 font-mono text-right">Rp {{ number_format($ans->jumlah_bayar,0,',','.') }}</td><td class="px-3 py-2 text-slate-800 font-mono text-right">Rp {{ number_format($ans->sisa_pinjaman,0,',','.') }}</td><td class="px-3 py-2 text-slate-500">{{ $ans->user->name }}</td><td class="px-3 py-2 text-right"><a href="{{ route('transaksi.angsuran.cetak', [$transaksi, $ans]) }}" class="text-[10px] bg-amber-50 text-amber-500 px-2 py-1 rounded-full hover:bg-amber-100" target="_blank">📄 Download</a></td></tr>
                     @endforeach
                     </tbody>
                 </table>
@@ -161,7 +202,7 @@
                     <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-emerald-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Disetujui oleh {{ $transaksi->approvedByUser->name ?? '-' }}</p><p class="text-xs text-slate-500">{{ $transaksi->approved_at->format('Y-m-d H:i') }} · {{ $transaksi->no_register_akad }}</p></div>
                     @endif
                     @foreach($transaksi->perpanjangan as $ext)
-                    <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-indigo-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Perpanjangan (+{{ $ext->tambahan_tenor_hari }} hari) <a href="{{ route('transaksi.perpanjangan.cetak', [$transaksi, $ext]) }}" target="_blank" class="ml-2 text-[10px] text-indigo-400">Cetak</a></p><p class="text-xs text-slate-500">{{ $ext->tanggal_perpanjangan }}</p></div>
+                    <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full {{ $ext->is_overdue_extension ? 'bg-amber-500' : 'bg-indigo-500' }} border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Perpanjangan (+{{ $ext->tambahan_tenor_hari }} hari) @if($ext->is_overdue_extension)<span class="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full ml-1">OVERDUE</span>@endif <a href="{{ route('transaksi.perpanjangan.cetak', [$transaksi, $ext]) }}" target="_blank" class="ml-2 text-[10px] bg-indigo-50 text-indigo-500 px-2 py-0.5 rounded-full hover:bg-indigo-100">📄 Download Nota</a></p><p class="text-xs text-slate-500">{{ $ext->tanggal_perpanjangan }} · Nota: {{ $ext->no_nota ?? '-' }} · JT Baru: {{ $ext->tanggal_jatuh_tempo_baru }} · Rp {{ number_format($ext->ujrah_dibayar, 0, ',', '.') }}</p></div>
                     @endforeach
                     @foreach($transaksi->angsuran as $ans)
                     <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-amber-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Angsuran Rp {{ number_format($ans->jumlah_bayar,0,',','.') }}</p><p class="text-xs text-slate-500">{{ $ans->tanggal_bayar }} · Sisa: Rp {{ number_format($ans->sisa_pinjaman,0,',','.') }}</p></div>
@@ -211,6 +252,112 @@
                 <div class="w-10 h-10 rounded-full bg-white mr-3 border border-slate-300 flex items-center justify-center text-slate-500 font-bold text-sm">{{ substr($transaksi->nasabah->nama,0,1) }}</div>
                 <div><p class="text-sm font-bold text-slate-800">{{ $transaksi->nasabah->nama }}</p><p class="text-xs text-sky-400 font-mono">{{ $transaksi->nasabah->telepon }}</p></div>
             </div>
+
+            {{-- WhatsApp Reminder --}}
+            @if($transaksi->status_approval === 'disetujui' && in_array($transaksi->status, ['aktif','diperpanjang']))
+            @php
+                $jt = \Carbon\Carbon::parse($transaksi->tanggal_jatuh_tempo);
+                $now = \Carbon\Carbon::today();
+                $diffHari = (int) $now->diffInDays($jt, false); // positive = belum JT, negative = sudah lewat
+                $hariLewat = $diffHari < 0 ? abs($diffHari) : 0;
+                $hariBefore = $diffHari > 0 ? $diffHari : 0;
+
+                // Get barang jaminan name
+                $detailFirst = $transaksi->detailTransaksi->first();
+                $namaBarang = $detailFirst ? $detailFirst->barang->nama_barang : 'barang jaminan';
+                $namaCustomer = $transaksi->nasabah->nama;
+                $sisaUtang = 'Rp' . number_format($transaksi->sisa_pinjaman, 0, ',', '.');
+                $ujrah = 'Rp' . number_format($transaksi->ujrah_per_30hari, 0, ',', '.');
+                $tglJT = $jt->format('d/m/Y');
+                $noAkad = $transaksi->no_register_akad ?? $transaksi->no_transaksi;
+                $csPhone = $noTeleponCs ?? '6281234567890';
+
+                // Format phone for wa.me (strip leading 0, ensure 62 prefix)
+                $custPhone = preg_replace('/[^0-9]/', '', $transaksi->nasabah->telepon);
+                if (str_starts_with($custPhone, '0')) {
+                    $custPhone = '62' . substr($custPhone, 1);
+                } elseif (!str_starts_with($custPhone, '62')) {
+                    $custPhone = '62' . $custPhone;
+                }
+
+                // Format CS phone for display
+                $csPhoneDisplay = $csPhone;
+
+                // Determine message template based on due date proximity
+                if ($hariLewat >= 8) {
+                    // H+8: Final - Siap Lelang
+                    $waLabel = '⚠ Kirim Peringatan Lelang (H+' . $hariLewat . ')';
+                    $waColor = 'bg-red-600 hover:bg-red-700';
+                    $waBadge = 'SIAP LELANG';
+                    $waBadgeColor = 'bg-red-100 text-red-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, sesuai akad rahn no {$noAkad}, karena belum ada pelunasan hingga H+8, barang jaminan {$namaBarang} resmi kami lelang. Sisa dana (jika ada) setelah lelang dan potong hutang akan dikembalikan ke rekening Bapak/Ibu. Terima kasih. HARMANS GADAI SYARIAH";
+                } elseif ($hariLewat >= 7) {
+                    // H+7: Peringatan Lelang
+                    $waLabel = '⚠ Kirim Peringatan Lelang (H+7)';
+                    $waColor = 'bg-red-500 hover:bg-red-600';
+                    $waBadge = 'PERINGATAN LELANG';
+                    $waBadgeColor = 'bg-red-100 text-red-600';
+                    $biayaOverdue = 'Rp' . number_format($transaksi->ujrah_per_30hari * 2, 0, ',', '.');
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, perhatian! Jatuh tempo gadai Anda telah lewat 7 hari. Dalam 1x24 jam, barang jaminan {$namaBarang} akan dilelang untuk menutup hutang pokok {$sisaUtang} + biaya penitipan overdue {$biayaOverdue}. Hubungi kami segera di {$csPhoneDisplay} untuk menghindari lelang. HARMANS GADAI SYARIAH";
+                } elseif ($hariLewat > 0) {
+                    // H+1 to H+6: Sudah lewat tapi belum H+7
+                    $waLabel = '⚠ Kirim Peringatan (Lewat ' . $hariLewat . ' Hari)';
+                    $waColor = 'bg-orange-500 hover:bg-orange-600';
+                    $waBadge = 'SUDAH LEWAT JT';
+                    $waBadgeColor = 'bg-orange-100 text-orange-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, barang jaminan {$namaBarang} Bapak/Ibu sudah melewati jatuh tempo {$hariLewat} hari pada tgl {$tglJT}. Sisa utang pokok {$sisaUtang}. Segera lunasi atau perpanjang sebelum masuk periode lelang (H+8). Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                } elseif ($diffHari == 0) {
+                    // H-0 / H-1 (hari ini jatuh tempo)
+                    $waLabel = '🔴 Kirim Peringatan Penting (HARI INI JT)';
+                    $waColor = 'bg-rose-500 hover:bg-rose-600';
+                    $waBadge = 'HARI INI JATUH TEMPO';
+                    $waBadgeColor = 'bg-rose-100 text-rose-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, HARI INI adalah batas akhir jatuh tempo gadai Bapak/Ibu. Jika belum melunasi pokok pinjaman {$sisaUtang} atau perpanjang biaya penitipan {$ujrah}, barang jaminan {$namaBarang} otomatis masuk tahap pelelangan tanpa pemberitahuan lebih lanjut. Segera lunasi. Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                } elseif ($hariBefore == 1) {
+                    // H-1
+                    $waLabel = '🔴 Kirim Peringatan Penting (H-1)';
+                    $waColor = 'bg-rose-500 hover:bg-rose-600';
+                    $waBadge = 'BESOK JATUH TEMPO';
+                    $waBadgeColor = 'bg-rose-100 text-rose-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, BESOK adalah batas akhir jatuh tempo gadai Bapak/Ibu pada tgl {$tglJT}. Jika belum melunasi pokok pinjaman {$sisaUtang} atau perpanjang biaya penitipan {$ujrah}, barang jaminan {$namaBarang} otomatis masuk tahap pelelangan tanpa pemberitahuan lebih lanjut. Segera lunasi. Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                } elseif ($hariBefore <= 3) {
+                    // H-3
+                    $waLabel = '🟠 Kirim Peringatan H-' . $hariBefore;
+                    $waColor = 'bg-amber-500 hover:bg-amber-600';
+                    $waBadge = 'H-' . $hariBefore;
+                    $waBadgeColor = 'bg-amber-100 text-amber-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, barang jaminan {$namaBarang} Bapak/Ibu akan jatuh tempo dalam {$hariBefore} hari lagi pada tgl {$tglJT}. Sisa utang pokok {$sisaUtang}. Segera lunasi atau perpanjang sebelum jatuh tempo. Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                } elseif ($hariBefore <= 7) {
+                    // H-7
+                    $waLabel = '🟡 Kirim Peringatan Dini (H-' . $hariBefore . ')';
+                    $waColor = 'bg-yellow-500 hover:bg-yellow-600';
+                    $waBadge = 'H-' . $hariBefore;
+                    $waBadgeColor = 'bg-yellow-100 text-yellow-700';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, barang jaminan {$namaBarang} Bapak/Ibu akan jatuh tempo dalam {$hariBefore} hari lagi pada tgl {$tglJT}. Sisa utang pokok {$sisaUtang}. Segera lunasi atau perpanjang sebelum jatuh tempo. Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                } else {
+                    // Masih jauh (>7 hari)
+                    $waLabel = '💬 Kirim Pengingat (H-' . $hariBefore . ')';
+                    $waColor = 'bg-emerald-500 hover:bg-emerald-600';
+                    $waBadge = 'H-' . $hariBefore;
+                    $waBadgeColor = 'bg-emerald-100 text-emerald-600';
+                    $waMessage = "Assalamu'alaikum Bpk/Ibu {$namaCustomer}, ini adalah pengingat bahwa barang jaminan {$namaBarang} Bapak/Ibu memiliki jatuh tempo pada tgl {$tglJT}. Sisa utang pokok {$sisaUtang}. Info hub CS HARMANS GADAI SYARIAH: {$csPhoneDisplay}.";
+                }
+
+                $waUrl = 'https://wa.me/' . $custPhone . '?text=' . urlencode($waMessage);
+            @endphp
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-semibold text-slate-800">Ingatkan via WA</h3>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-full {{ $waBadgeColor }}">{{ $waBadge }}</span>
+                </div>
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100" style="white-space:pre-line;">{{ $waMessage }}</p>
+                <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer"
+                   class="{{ $waColor }} text-white font-semibold py-3 px-4 rounded-xl shadow-sm transition-all w-full block text-center text-sm">
+                    <svg class="w-4 h-4 inline-block mr-1 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    {{ $waLabel }}
+                </a>
+            </div>
+            @endif
         </div>
     </div>
 </div>

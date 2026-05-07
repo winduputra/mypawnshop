@@ -21,6 +21,7 @@ class SettingController extends Controller
             'biaya_admin_emas' => 'required|numeric|min:0',
             'biaya_admin_kendaraan' => 'required|numeric|min:0',
             'ijarah_persen' => 'required|numeric|min:0|max:100',
+            'no_telepon_cs' => 'required|string|min:10|max:20',
             'ujrah_emas' => 'required|numeric|min:0',
             'ujrah_elektronik' => 'required|numeric|min:0',
             'ujrah_kendaraan' => 'required|numeric|min:0',
@@ -34,6 +35,7 @@ class SettingController extends Controller
             'ijarah_persen',
             'ujrah_emas', 'ujrah_elektronik', 'ujrah_kendaraan',
             'persentase_emas', 'persentase_elektronik', 'persentase_kendaraan',
+            'no_telepon_cs',
         ];
 
         foreach ($keys as $key) {

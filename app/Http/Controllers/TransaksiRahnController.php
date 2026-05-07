@@ -295,8 +295,9 @@ class TransaksiRahnController extends Controller
 
     public function show(TransaksiRahn $transaksi)
     {
-        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan', 'pelunasan', 'lelang', 'angsuran.user');
-        return view('transaksi.show', compact('transaksi'));
+        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan.user', 'pelunasan', 'lelang', 'angsuran.user');
+        $noTeleponCs = Setting::getValue('no_telepon_cs', '6281234567890');
+        return view('transaksi.show', compact('transaksi', 'noTeleponCs'));
     }
 
     public function cetakKontrak(TransaksiRahn $transaksi)
@@ -373,11 +374,17 @@ class TransaksiRahnController extends Controller
 
     public function cetakBuktiAngsuran(TransaksiRahn $transaksi, Angsuran $angsuran)
     {
-        $transaksi->load('nasabah', 'user');
+        $transaksi->load('nasabah', 'user', 'detailTransaksi.barang');
+        $angsuran->load('user');
 
-        $pdf = Pdf::loadView('transaksi.bukti-angsuran-pdf', compact('transaksi', 'angsuran'));
+        // Calculate "Angsuran ke-" (which installment number this is)
+        $angsuranKe = Angsuran::where('transaksi_rahn_id', $transaksi->id)
+            ->where('id', '<=', $angsuran->id)
+            ->count();
+
+        $pdf = Pdf::loadView('transaksi.bukti-angsuran-pdf', compact('transaksi', 'angsuran', 'angsuranKe'));
         $pdf->setPaper('A4', 'portrait');
         
-        return $pdf->download('Bukti-Angsuran-' . $transaksi->no_transaksi . '-' . $angsuran->id . '.pdf');
+        return $pdf->download('Bukti-Angsuran-' . $transaksi->no_transaksi . '-' . $angsuranKe . '.pdf');
     }
 }
