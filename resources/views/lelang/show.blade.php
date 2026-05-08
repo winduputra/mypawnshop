@@ -1,159 +1,206 @@
-@extends('layouts.app')
+<x-app-layout>
+    @section('header_title', 'Detail Lelang')
 
-@section('header_title', 'Proses Lelang')
-
-@section('content')
-<div class="max-w-4xl mx-auto space-y-6">
-    <div class="flex items-center space-x-4 mb-6">
-        <a href="{{ route('lelang.index') }}" class="text-gray-400 hover:text-slate-800 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
+    @section('content')
+    <div class="max-w-4xl mx-auto space-y-6">
+        <a href="{{ route('lelang.index') }}" class="text-[#084C35] hover:text-[#084C35]/70 text-sm flex items-center mb-2">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Kembali ke Daftar Lelang
         </a>
-        <div>
-            <h1 class="text-2xl font-semibold text-slate-800">Eksekusi Lelang</h1>
-            <p class="text-sm text-gray-400 mt-1">Transaksi: {{ $transaksi->no_transaksi }}</p>
+
+        @if(session('error'))
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">{{ session('error') }}</div>
+        @endif
+
+        @php
+            // Determine if we're viewing an existing lelang or creating new
+            $isExisting = isset($lelang);
+            $trx = $isExisting ? $lelang->transaksiRahn : $transaksi;
+            $user = auth()->user();
+        @endphp
+
+        {{-- Catatan Owner (jika dibatalkan) --}}
+        @if($isExisting && $lelang->status_lelang === 'dibatalkan' && $lelang->catatan_owner)
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start space-x-3">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <div>
+                <p class="text-sm font-semibold text-red-700">Catatan dari Owner:</p>
+                <p class="text-sm text-red-600">{{ $lelang->catatan_owner }}</p>
+            </div>
         </div>
-    </div>
+        @endif
 
-    @if(session('error'))
-    <div class="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-6">
-        {{ session('error') }}
-    </div>
-    @endif
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Info Transaksi -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 class="text-lg font-semibold text-slate-800 mb-4">Informasi Pinjaman</h3>
-            
-            <div class="space-y-4">
-                <div>
-                    <p class="text-xs text-slate-500 mb-1">Nasabah</p>
-                    <p class="text-slate-800 font-medium">{{ $transaksi->nasabah->nama }}</p>
-                    <p class="text-xs text-slate-500">{{ $transaksi->nasabah->telepon }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-slate-500 mb-1">Barang Jaminan</p>
-                    <ul class="list-disc list-inside text-sm text-slate-600">
-                        @foreach($transaksi->detailTransaksi as $dt)
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{-- Info Pinjaman --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-[#084C35]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Informasi Pinjaman
+                </h3>
+                <div class="space-y-4">
+                    @if($isExisting)
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">ID Lelang</p>
+                        <p class="text-[#084C35] font-mono font-bold">{{ $lelang->no_lelang }}</p>
+                    </div>
+                    @endif
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">Nasabah</p>
+                        <p class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</p>
+                        <p class="text-xs text-slate-400">{{ $trx->nasabah->telepon }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">Barang Jaminan</p>
+                        <ul class="list-disc list-inside text-sm text-slate-600">
+                            @foreach($trx->detailTransaksi as $dt)
                             <li>{{ $dt->barang->nama_barang }} (Rp {{ number_format($dt->taksiran_item, 0, ',', '.') }})</li>
-                        @endforeach
-                    </ul>
-                </div>
-
-                <div class="pt-4 border-t border-slate-300">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-500">Total Taksiran</span>
-                        <span class="text-slate-800 font-mono">Rp {{ number_format($transaksi->total_taksiran, 0, ',', '.') }}</span>
+                            @endforeach
+                        </ul>
                     </div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-500">Total Pinjaman Awal</span>
-                        <span class="text-slate-800 font-mono">Rp {{ number_format($transaksi->total_pinjaman, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                        <span class="text-sm font-medium text-slate-800">Sisa Pinjaman (Pokok + Tunggakan)</span>
-                        <span class="text-lg font-bold text-rose-400 font-mono">Rp {{ number_format($transaksi->sisa_pinjaman, 0, ',', '.') }}</span>
+                    <div class="pt-4 border-t border-slate-200 space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">Pokok Pinjaman</span>
+                            <span class="text-slate-800 font-mono font-semibold">Rp {{ number_format($trx->total_pinjaman, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">Sisa Pokok Pinjaman</span>
+                            <span class="text-rose-600 font-mono font-bold">Rp {{ number_format($trx->sisa_pinjaman, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">Ijarah (Biaya Penitipan)</span>
+                            <span class="text-slate-700 font-mono">Rp {{ number_format($trx->biaya_penitipan, 0, ',', '.') }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Form Lelang -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 class="text-lg font-semibold text-slate-800 mb-4">Input Data Lelang</h3>
-            
-            <form action="{{ route('lelang.store') }}" method="POST" class="space-y-5" onsubmit="return confirm('Apakah data lelang sudah benar? Aksi ini tidak dapat dibatalkan.');">
-                @csrf
-                <input type="hidden" name="transaksi_rahn_id" value="{{ $transaksi->id }}">
-                <input type="hidden" id="sisa_pinjaman" value="{{ $transaksi->sisa_pinjaman }}">
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Tanggal Lelang</label>
-                    <input type="date" name="tanggal_lelang" value="{{ date('Y-m-d') }}" required
-                        class="w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50">
+            {{-- Form / Review Panel --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                @if($isExisting && $lelang->status_lelang === 'pending' && in_array($user->role, ['owner','superadmin']))
+                {{-- Owner Review Mode --}}
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Review Lelang</h3>
+                <div class="space-y-3 text-sm mb-6">
+                    <div class="flex justify-between"><span class="text-slate-500">Harga Jual Lelang</span><span class="text-slate-800 font-mono font-bold">Rp {{ number_format($lelang->harga_lelang, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Biaya Admin Lelang</span><span class="text-slate-800 font-mono">Rp {{ number_format($lelang->biaya_lelang, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ijarah</span><span class="text-slate-700 font-mono">Rp {{ number_format($lelang->ijarah, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between pt-3 border-t border-slate-200"><span class="text-sm font-medium text-emerald-600">Est. Sisa Dana Kembali</span><span class="text-emerald-600 font-mono font-bold">Rp {{ number_format($lelang->sisa_dana_kembali, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-slate-500">Diajukan oleh</span><span class="text-slate-700">{{ $lelang->user->name ?? '-' }}</span></div>
+                </div>
+                <div class="flex gap-3">
+                    <form action="{{ route('lelang.approve', $lelang->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Setujui lelang ini?')">
+                        @csrf
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all">Approve</button>
+                    </form>
+                    <button onclick="document.getElementById('reject-inline').classList.toggle('hidden')" class="flex-1 border border-red-300 text-red-600 font-semibold py-3 rounded-xl hover:bg-red-50 transition-all">Tolak / Revisi</button>
+                </div>
+                <div id="reject-inline" class="hidden mt-4">
+                    <form action="{{ route('lelang.reject', $lelang->id) }}" method="POST">
+                        @csrf
+                        <textarea name="catatan_owner" rows="2" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm text-slate-800 mb-3 focus:ring-2 focus:ring-red-300 focus:outline-none" placeholder="Catatan revisi..."></textarea>
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-all">Kirim Tolakan</button>
+                    </form>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Nama Pembeli</label>
-                    <input type="text" name="pembeli" required placeholder="Masukkan nama pembeli"
-                        class="w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Harga Terjual (Rp)</label>
-                    <input type="text" name="harga_lelang" id="harga_lelang" required placeholder="0" oninput="calculateLelang()"
-                        class="currency-input w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-slate-800 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-sky-500/50">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Lelang / Admin (Rp)</label>
-                    <input type="text" name="biaya_lelang" id="biaya_lelang" required value="0" oninput="calculateLelang()"
-                        class="currency-input w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-sky-500/50">
-                </div>
-
-                <div class="p-4 bg-white rounded-xl border border-slate-300 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-emerald-400">Dana Turun (Kembali ke Nasabah)</span>
-                        <span id="label_kembali" class="text-emerald-400 font-mono font-bold">Rp 0</span>
+                @elseif($isExisting && $lelang->status_lelang === 'dibatalkan' && in_array($user->role, ['admin','kasir','superadmin']))
+                {{-- Admin Revisi Mode --}}
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Revisi Harga Lelang</h3>
+                <form action="{{ route('lelang.update', $lelang->id) }}" method="POST" class="space-y-5">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="sisa_pinjaman" value="{{ $trx->sisa_pinjaman }}">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Harga Jual Lelang (Rp)</label>
+                        <input type="text" name="harga_lelang" id="harga_lelang" value="{{ number_format($lelang->harga_lelang, 0, '', '') }}" required oninput="calculateLelang()"
+                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-lg font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                     </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                        <span class="text-sm font-medium text-rose-400">Kerugian (Kekurangan)</span>
-                        <span id="label_rugi" class="text-rose-400 font-mono font-bold">Rp 0</span>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Admin Lelang (Rp)</label>
+                        <input type="text" name="biaya_lelang" id="biaya_lelang" value="{{ number_format($lelang->biaya_lelang, 0, '', '') }}" required oninput="calculateLelang()"
+                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                     </div>
-                </div>
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-emerald-700">Sisa Dana Kembali</span>
+                            <span id="label_kembali" class="text-emerald-700 font-mono font-bold text-lg">Rp 0</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-3 rounded-xl transition-all">
+                        Kirim Revisi ke Owner
+                    </button>
+                </form>
 
-                <button type="submit" class="w-full bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all py-3 rounded-xl mt-4 text-base">
-                    Proses Eksekusi Lelang
-                </button>
-            </form>
+                @elseif(!$isExisting)
+                {{-- New Lelang Form --}}
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Input Data Lelang</h3>
+                <form action="{{ route('lelang.store') }}" method="POST" class="space-y-5" onsubmit="return confirm('Kirim data lelang ke Owner untuk approval?')">
+                    @csrf
+                    <input type="hidden" name="transaksi_rahn_id" value="{{ $trx->id }}">
+                    <input type="hidden" id="sisa_pinjaman" value="{{ $trx->sisa_pinjaman }}">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Harga Jual Lelang (Rp)</label>
+                        <input type="text" name="harga_lelang" id="harga_lelang" required placeholder="0" oninput="calculateLelang()"
+                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-lg font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Admin Lelang (Rp)</label>
+                        <input type="text" name="biaya_lelang" id="biaya_lelang" required value="0" oninput="calculateLelang()"
+                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-emerald-700">Est. Sisa Dana Kembali</span>
+                            <span id="label_kembali" class="text-emerald-700 font-mono font-bold text-lg">Rp 0</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#084C35] hover:bg-[#063d2a] text-[#D6A639] font-semibold py-3 rounded-xl transition-all text-base">
+                        <span class="flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            <span>Kirim ke Owner</span>
+                        </span>
+                    </button>
+                </form>
+
+                @elseif($isExisting && in_array($lelang->status_lelang, ['aktif','pending','terjual']))
+                {{-- Read-only view --}}
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Detail Lelang</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="text-slate-500">Status</span>
+                        @php $sc = ['pending'=>'bg-amber-100 text-amber-700','aktif'=>'bg-blue-100 text-blue-700','terjual'=>'bg-emerald-100 text-emerald-700']; @endphp
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $sc[$lelang->status_lelang] ?? '' }}">{{ ucfirst($lelang->status_lelang) }}</span>
+                    </div>
+                    <div class="flex justify-between"><span class="text-slate-500">Harga Jual Lelang</span><span class="text-slate-800 font-mono font-bold">Rp {{ number_format($lelang->harga_lelang, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Biaya Admin Lelang</span><span class="text-slate-800 font-mono">Rp {{ number_format($lelang->biaya_lelang, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ijarah</span><span class="text-slate-700 font-mono">Rp {{ number_format($lelang->ijarah, 0, ',', '.') }}</span></div>
+                    @if($lelang->approved_at)
+                    <div class="flex justify-between"><span class="text-slate-500">Disetujui oleh</span><span class="text-slate-700">{{ $lelang->approvedByUser->name ?? '-' }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Tanggal Approve</span><span class="text-slate-700">{{ $lelang->approved_at->format('d M Y H:i') }}</span></div>
+                    @endif
+                    @if($lelang->status_lelang === 'terjual')
+                    <div class="flex justify-between pt-3 border-t border-slate-200"><span class="text-emerald-600 font-medium">Sisa Dana Kembali</span><span class="text-emerald-600 font-mono font-bold">Rp {{ number_format($lelang->sisa_dana_kembali, 0, ',', '.') }}</span></div>
+                    @endif
+                </div>
+                @endif
+            </div>
         </div>
     </div>
-</div>
 
-@push('scripts')
-<script>
-    function parseRupiah(val) {
-        if(!val) return 0;
-        return parseInt(val.replace(/[^0-9]/g, '')) || 0;
-    }
-
-    function formatRupiah(angka, prefix) {
-        var number_string = angka.toString().replace(/[^,\d]/g, ''),
-            split = number_string.split(','),
-            sisa = split[0].length % 3,
-            rupiah = split[0].substr(0, sisa),
-            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-        if (ribuan) {
-            separator = sisa ? '.' : '';
-            rupiah += separator + ribuan.join('.');
+    @push('scripts')
+    <script>
+        function parseRupiah(val) { return parseInt((val||'').toString().replace(/[^0-9]/g, '')) || 0; }
+        function formatRupiah(angka) {
+            var s = angka.toString().replace(/[^,\d]/g, ''), sp = s.split(','), sisa = sp[0].length % 3, r = sp[0].substr(0, sisa), rb = sp[0].substr(sisa).match(/\d{3}/gi);
+            if(rb){r += (sisa?'.':'') + rb.join('.');}
+            return 'Rp ' + r;
         }
-
-        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-        return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
-    }
-
-    function calculateLelang() {
-        const pinjaman = parseFloat(document.getElementById('sisa_pinjaman').value) || 0;
-        const harga = parseRupiah(document.getElementById('harga_lelang').value);
-        const biaya = parseRupiah(document.getElementById('biaya_lelang').value);
-
-        const totalKewajiban = pinjaman + biaya;
-
-        let kembali = 0;
-        let rugi = 0;
-
-        if (harga > totalKewajiban) {
-            kembali = harga - totalKewajiban;
-        } else if (harga < totalKewajiban) {
-            rugi = totalKewajiban - harga;
+        function calculateLelang() {
+            var p = parseFloat(document.getElementById('sisa_pinjaman')?.value) || 0;
+            var h = parseRupiah(document.getElementById('harga_lelang')?.value);
+            var b = parseRupiah(document.getElementById('biaya_lelang')?.value);
+            var sisa = Math.max(0, h - (p + b));
+            var el = document.getElementById('label_kembali');
+            if(el) el.innerText = formatRupiah(sisa);
         }
-
-        document.getElementById('label_kembali').innerText = formatRupiah(kembali, 'Rp ');
-        document.getElementById('label_rugi').innerText = formatRupiah(rugi, 'Rp ');
-    }
-</script>
-@endpush
-@endsection
+    </script>
+    @endpush
+    @endsection
+</x-app-layout>

@@ -3,96 +3,173 @@
 
     @section('content')
     <div class="mb-6">
-        <h3 class="text-lg font-semibold text-slate-800">Daftar Marhun Siap & Sudah Lelang</h3>
-        <p class="text-sm text-slate-500">Barang gadai yang sudah melewati batas tenggang dan masuk masa lelang.</p>
+        <h3 class="text-lg font-semibold text-slate-800">Manajemen Lelang</h3>
+        <p class="text-sm text-slate-500">Kelola proses lelang barang gadai yang melewati jatuh tempo H+8.</p>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-sm">
+    @if(session('success'))
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl mb-6 flex items-center">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{ session('success') }}
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">{{ session('error') }}</div>
+    @endif
+
+    {{-- Status Tabs --}}
+    <div class="flex flex-wrap gap-2 mb-6">
+        @php $tabs = ['semua'=>'Semua','baru'=>'Baru (H+8)','pending'=>'Pending','aktif'=>'Aktif','terjual'=>'Terjual','dibatalkan'=>'Dibatalkan']; @endphp
+        @foreach($tabs as $key => $label)
+        <a href="{{ route('lelang.index', ['status' => $key]) }}"
+           class="px-4 py-2 rounded-xl text-sm font-medium transition-all border
+           {{ $statusFilter === $key ? 'bg-[#084C35] text-[#D6A639] border-[#084C35]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#084C35]/30 hover:text-[#084C35]' }}">
+            {{ $label }}
+        </a>
+        @endforeach
+    </div>
+
+    {{-- Tabel Transaksi Baru (belum punya record lelang) --}}
+    @if($belumLelang->count() > 0 && in_array($statusFilter, ['semua', 'baru']))
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-sm mb-6">
+        <div class="px-6 py-4 border-b border-slate-200 bg-amber-50">
+            <h4 class="font-semibold text-amber-800 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                Transaksi Melewati H+8 — Siap Diproses Lelang
+            </h4>
+        </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
-                    <tr class="text-xs font-semibold text-slate-500 uppercase bg-white">
-                        <th class="px-6 py-4">No. Transaksi</th>
-                        <th class="px-6 py-4">Nasabah</th>
-                        <th class="px-6 py-4">Barang Jaminan</th>
-                        <th class="px-6 py-4">Pokok Hutang</th>
-                        <th class="px-6 py-4">Tgl Batas</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+                    <tr class="text-xs font-semibold text-slate-500 uppercase bg-slate-50">
+                        <th class="px-6 py-3">No. Transaksi</th>
+                        <th class="px-6 py-3">Nasabah</th>
+                        <th class="px-6 py-3">Barang</th>
+                        <th class="px-6 py-3">Pokok Pinjaman</th>
+                        <th class="px-6 py-3">Sisa Pokok</th>
+                        <th class="px-6 py-3">Ijarah</th>
+                        <th class="px-6 py-3">Tgl Batas</th>
+                        <th class="px-6 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @forelse($transactions as $trx)
-                    @php $sudahLelang = $trx->status === 'lelang'; @endphp
-                    <tr class="hover:bg-white transition-colors {{ $sudahLelang ? 'opacity-80' : '' }}">
-                        <td class="px-6 py-4 font-mono text-sky-400 font-bold uppercase">{{ $trx->no_transaksi }}</td>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach($belumLelang as $trx)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-mono text-sky-600 font-bold text-xs">{{ $trx->no_transaksi }}</td>
                         <td class="px-6 py-4">
                             <div class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</div>
-                            <div class="text-xs text-slate-500">{{ $trx->nasabah->telepon }}</div>
+                            <div class="text-xs text-slate-400">{{ $trx->nasabah->telepon }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <ul class="list-disc list-inside text-slate-600">
+                            <ul class="text-slate-600 text-xs space-y-0.5">
                                 @foreach($trx->detailTransaksi as $dt)
-                                    <li>{{ $dt->barang->nama_barang }}</li>
+                                <li>• {{ $dt->barang->nama_barang }}</li>
                                 @endforeach
                             </ul>
                         </td>
-                        <td class="px-6 py-4 text-slate-800 font-semibold">Rp {{ number_format($trx->sisa_pinjaman, 0, ',', '.') }}</td>
-                        <td class="px-6 py-4 text-rose-400 font-medium">{{ \Carbon\Carbon::parse($trx->tanggal_batas_lelang)->format('d M Y') }}</td>
+                        <td class="px-6 py-4 font-mono text-slate-800">Rp {{ number_format($trx->total_pinjaman, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 font-mono text-rose-600 font-semibold">Rp {{ number_format($trx->sisa_pinjaman, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 font-mono text-slate-600">Rp {{ number_format($trx->biaya_penitipan, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-rose-500 font-medium text-xs">{{ \Carbon\Carbon::parse($trx->tanggal_batas_lelang)->format('d M Y') }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{{ route('lelang.show', $trx->id) }}"
+                               class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#cf9e50] hover:bg-[#b48842] text-white shadow-sm transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>Proses Lelang</span>
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    {{-- Tabel Record Lelang --}}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-sm">
+        <div class="px-6 py-4 border-b border-slate-200">
+            <h4 class="font-semibold text-slate-800">Daftar Lelang</h4>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-xs font-semibold text-slate-500 uppercase bg-slate-50">
+                        <th class="px-6 py-3">ID Lelang</th>
+                        <th class="px-6 py-3">No. Transaksi</th>
+                        <th class="px-6 py-3">Nasabah</th>
+                        <th class="px-6 py-3">Pokok Pinjaman</th>
+                        <th class="px-6 py-3">Harga Jual</th>
+                        <th class="px-6 py-3">Biaya Admin</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($lelangRecords as $l)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-mono text-[#084C35] font-bold text-xs">{{ $l->no_lelang }}</td>
+                        <td class="px-6 py-4 font-mono text-sky-600 text-xs">{{ $l->transaksiRahn->no_transaksi }}</td>
                         <td class="px-6 py-4">
-                            @if($sudahLelang)
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>
-                                Terlelang
+                            <div class="text-slate-800 font-medium text-xs">{{ $l->transaksiRahn->nasabah->nama }}</div>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-slate-700 text-xs">Rp {{ number_format($l->sisa_pinjaman, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 font-mono text-slate-800 font-semibold text-xs">Rp {{ number_format($l->harga_lelang, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 font-mono text-slate-600 text-xs">Rp {{ number_format($l->biaya_lelang, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4">
+                            @php $statusColors = ['draft'=>'bg-slate-100 text-slate-600','pending'=>'bg-amber-100 text-amber-700','aktif'=>'bg-blue-100 text-blue-700','terjual'=>'bg-emerald-100 text-emerald-700','dibatalkan'=>'bg-red-100 text-red-700']; @endphp
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusColors[$l->status_lelang] ?? 'bg-slate-100 text-slate-600' }}">
+                                {{ ucfirst($l->status_lelang) }}
                             </span>
-                            @else
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
-                                Belum Lelang
-                            </span>
-                            @endif
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end space-x-2">
-                                {{-- Eye / Detail Button --}}
-                                @if($sudahLelang && $trx->lelang)
-                                <a href="{{ route('lelang.hasil', $trx->lelang->id) }}"
-                                   class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:text-sky-300 hover:border-sky-300/40 transition-colors"
-                                   title="Lihat Detail Lelang">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
+                                {{-- View Detail --}}
+                                <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors" title="Detail">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </a>
-                                @else
-                                <a href="{{ route('lelang.show', $trx->id) }}"
-                                   class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-500/10 border border-slate-500/20 text-slate-500 hover:text-slate-600 hover:border-slate-300/40 transition-colors"
-                                   title="Lihat Detail Transaksi">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
+
+                                {{-- Owner: Approve/Reject for pending --}}
+                                @if($l->status_lelang === 'pending' && in_array(auth()->user()->role, ['owner','superadmin']))
+                                <form action="{{ route('lelang.approve', $l->id) }}" method="POST" class="inline" onsubmit="return confirm('Setujui lelang ini?')">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-all" title="Approve">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Approve
+                                    </button>
+                                </form>
+                                <button onclick="showRejectModal({{ $l->id }})" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-all" title="Tolak">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Tolak
+                                </button>
+                                @endif
+
+                                {{-- Admin: Bayar for aktif --}}
+                                @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['admin','kasir','superadmin']))
+                                <button onclick="showBayarModal({{ $l->id }}, '{{ $l->no_lelang }}')" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#cf9e50] text-white hover:bg-[#b48842] transition-all">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    Bayar
+                                </button>
+                                @endif
+
+                                {{-- Owner: Batalkan for aktif --}}
+                                @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['owner','superadmin']))
+                                <button onclick="showBatalkanModal({{ $l->id }})" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-all">Batalkan</button>
+                                @endif
+
+                                {{-- Terjual: Lihat Nota --}}
+                                @if($l->status_lelang === 'terjual')
+                                <a href="{{ route('lelang.hasil', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-all">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Nota
                                 </a>
                                 @endif
 
-                                {{-- Proses Lelang Button --}}
-                                @if($sudahLelang)
-                                <button type="button"
-                                    onclick="showAlreadyAuctionedModal('{{ $trx->no_transaksi }}', {{ $trx->lelang->id }})"
-                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-500/10 border border-slate-500/20 text-slate-500 cursor-not-allowed"
-                                    title="Sudah Dilelang">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </button>
-                                @else
-                                <a href="{{ route('lelang.show', $trx->id) }}"
-                                   class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all"
-                                   title="Proses Lelang">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                    </svg>
-                                    <span>Proses</span>
+                                {{-- Dibatalkan: Revisi (admin) --}}
+                                @if($l->status_lelang === 'dibatalkan' && in_array(auth()->user()->role, ['admin','kasir','superadmin']))
+                                <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-all">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    Revisi
                                 </a>
                                 @endif
                             </div>
@@ -100,12 +177,10 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="text-slate-500">Tidak ada barang yang perlu dilelang saat ini.</p>
+                                <svg class="w-12 h-12 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                                <p class="text-slate-400">Tidak ada data lelang untuk filter ini.</p>
                             </div>
                         </td>
                     </tr>
@@ -113,57 +188,87 @@
                 </tbody>
             </table>
         </div>
-        @if($transactions->hasPages())
-        <div class="p-6 border-t border-slate-200">
-            {{ $transactions->links() }}
-        </div>
-        @endif
     </div>
 
-    {{-- Modal: Already Auctioned --}}
-    <div id="modal-already-auctioned" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
-         style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-md w-full text-center relative">
-            <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-2">Lelang Sudah Selesai</h3>
-            <p class="text-slate-500 text-sm mb-1">Nomor Gadai:</p>
-            <p id="modal-no-trx" class="text-sky-400 font-mono font-bold text-base mb-4"></p>
-            <p class="text-slate-500 text-sm mb-6">Lelang untuk nomor gadai ini sudah selesai dilaksanakan. Anda dapat melihat detail dan mencetak berita acara lelangnya.</p>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <a id="modal-cetak-link" href="#"
-                   class="flex-1 bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all py-3 rounded-xl text-sm text-center flex items-center justify-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                    </svg>
-                    <span>Cetak Berita Acara</span>
-                </a>
-                <a id="modal-detail-link" href="#"
-                   class="flex-1 py-3 rounded-xl text-sm text-slate-600 hover:text-slate-800 border border-slate-300 hover:border-white/20 text-center transition-colors">
-                    Lihat Detail
-                </a>
-                <button onclick="document.getElementById('modal-already-auctioned').classList.add('hidden')"
-                    class="flex-1 py-3 rounded-xl text-sm text-slate-500 hover:text-slate-600 border border-slate-200 hover:border-slate-300 text-center transition-colors">
-                    Tutup
-                </button>
-            </div>
+    {{-- Modal: Reject --}}
+    <div id="modal-reject" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Tolak / Minta Revisi Lelang</h3>
+            <form id="form-reject" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-600 mb-1">Catatan untuk Admin</label>
+                    <textarea name="catatan_owner" rows="3" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none" placeholder="Revisi harga jual / biaya admin..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-all">Tolak Lelang</button>
+                    <button type="button" onclick="document.getElementById('modal-reject').classList.add('hidden')" class="flex-1 border border-slate-300 text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition-all">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal: Bayar --}}
+    <div id="modal-bayar" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Konfirmasi Pembayaran Lelang</h3>
+            <p class="text-sm text-slate-500 mb-4">ID: <span id="bayar-no-lelang" class="font-mono font-bold text-[#084C35]"></span></p>
+            <form id="form-bayar" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label class="block text-sm text-slate-600 mb-1">Nama Pembeli (opsional)</label>
+                    <input type="text" name="pembeli" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-600 mb-1">Telepon Pembeli (opsional)</label>
+                    <input type="text" name="telepon_pembeli" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2.5 rounded-xl transition-all">Konfirmasi Bayar</button>
+                    <button type="button" onclick="document.getElementById('modal-bayar').classList.add('hidden')" class="flex-1 border border-slate-300 text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition-all">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal: Batalkan --}}
+    <div id="modal-batalkan" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Batalkan Lelang Aktif</h3>
+            <form id="form-batalkan" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-600 mb-1">Alasan Pembatalan</label>
+                    <textarea name="catatan_owner" rows="3" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none" placeholder="Barang tidak terjual, revisi harga..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-all">Batalkan Lelang</button>
+                    <button type="button" onclick="document.getElementById('modal-batalkan').classList.add('hidden')" class="flex-1 border border-slate-300 text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition-all">Tutup</button>
+                </div>
+            </form>
         </div>
     </div>
 
     @push('scripts')
     <script>
-        function showAlreadyAuctionedModal(noTrx, lelangId) {
-            document.getElementById('modal-no-trx').textContent = noTrx;
-            document.getElementById('modal-cetak-link').href = '/lelang/' + lelangId + '/cetak-pdf';
-            document.getElementById('modal-detail-link').href = '/lelang/' + lelangId + '/hasil';
-            document.getElementById('modal-already-auctioned').classList.remove('hidden');
+        function showRejectModal(id) {
+            document.getElementById('form-reject').action = '/lelang/' + id + '/reject';
+            document.getElementById('modal-reject').classList.remove('hidden');
         }
-        // Close on backdrop click
-        document.getElementById('modal-already-auctioned').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.add('hidden');
+        function showBayarModal(id, noLelang) {
+            document.getElementById('form-bayar').action = '/lelang/' + id + '/bayar';
+            document.getElementById('bayar-no-lelang').textContent = noLelang;
+            document.getElementById('modal-bayar').classList.remove('hidden');
+        }
+        function showBatalkanModal(id) {
+            document.getElementById('form-batalkan').action = '/lelang/' + id + '/batalkan';
+            document.getElementById('modal-batalkan').classList.remove('hidden');
+        }
+        // Close modals on backdrop click
+        ['modal-reject','modal-bayar','modal-batalkan'].forEach(function(id) {
+            document.getElementById(id).addEventListener('click', function(e) {
+                if (e.target === this) this.classList.add('hidden');
+            });
         });
     </script>
     @endpush

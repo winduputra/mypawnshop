@@ -101,7 +101,7 @@
                         Lelang
                     </a>
 
-                    @if(auth()->user()->role === 'admin')
+                    @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin']))
                     <div class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Admin</div>
 
                     <a href="{{ route('cabang.index') }}" class="sidebar-link {{ request()->routeIs('cabang.*') ? 'active' : '' }}">

@@ -43,11 +43,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('transaksi/{transaksi}/pending', [TransaksiRahnController::class, 'pendingAkad'])->name('transaksi.pending');
     Route::post('transaksi/{transaksi}/reject', [TransaksiRahnController::class, 'rejectAkad'])->name('transaksi.reject');
 
-    Route::post('lelang', [\App\Http\Controllers\LelangController::class, 'store'])->name('lelang.store');
-    Route::get('lelang', [\App\Http\Controllers\LelangController::class, 'index'])->name('lelang.index');
-    Route::get('lelang/{lelang}', [\App\Http\Controllers\LelangController::class, 'show'])->name('lelang.show');
-    Route::get('lelang/{lelang}/hasil', [\App\Http\Controllers\LelangController::class, 'hasil'])->name('lelang.hasil');
-    Route::get('lelang/{lelang}/cetak-pdf', [\App\Http\Controllers\LelangController::class, 'cetakPdf'])->name('lelang.cetak-pdf');
+    // Lelang Workflow
+    Route::get('lelang', [LelangController::class, 'index'])->name('lelang.index');
+    Route::post('lelang', [LelangController::class, 'store'])->name('lelang.store');
+    Route::get('lelang/{lelang}', [LelangController::class, 'show'])->name('lelang.show');
+    Route::put('lelang/{lelang}', [LelangController::class, 'update'])->name('lelang.update');
+    Route::post('lelang/{lelang}/kirim', [LelangController::class, 'kirimKeOwner'])->name('lelang.kirim');
+    Route::post('lelang/{lelang}/approve', [LelangController::class, 'approve'])->name('lelang.approve');
+    Route::post('lelang/{lelang}/reject', [LelangController::class, 'reject'])->name('lelang.reject');
+    Route::post('lelang/{lelang}/bayar', [LelangController::class, 'bayar'])->name('lelang.bayar');
+    Route::post('lelang/{lelang}/batalkan', [LelangController::class, 'batalkan'])->name('lelang.batalkan');
+    Route::get('lelang/{lelang}/hasil', [LelangController::class, 'hasil'])->name('lelang.hasil');
+    Route::get('lelang/{lelang}/cetak-pdf', [LelangController::class, 'cetakPdf'])->name('lelang.cetak-pdf');
 
     // API for transaction create
     Route::get('/api/settings', [SettingController::class, 'getSettings'])->name('api.settings');
