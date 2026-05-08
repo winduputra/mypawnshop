@@ -11,6 +11,14 @@ use App\Models\Cabang;
 use App\Models\Angsuran;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\NasabahExport;
+use App\Exports\StockOpnameExport;
+use App\Exports\UangMasukExport;
+use App\Exports\UangDipinjamExport;
+use App\Exports\JatuhTempoExport;
+use App\Exports\BarangLelangExport;
+use App\Exports\PinjamanExport;
 
 class LaporanController extends Controller
 {
@@ -23,7 +31,7 @@ class LaporanController extends Controller
 
         // For admin: allow selecting a branch filter. For kasir: always use their own branch.
         $filterCabangId = null;
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['admin', 'owner', 'superadmin'])) {
             $filterCabangId = $request->get('cabang_id');
         } elseif ($user->role === 'kasir' && $user->cabang_id) {
             $filterCabangId = $user->cabang_id;
@@ -135,5 +143,46 @@ class LaporanController extends Controller
             'laporanJatuhTempo', 'transaksiPeriod',
             'cabangs', 'filterCabangId', 'selectedCabang'
         ));
+    }
+
+    // ── Excel Export Methods ──
+
+    public function exportNasabah()
+    {
+        return Excel::download(new NasabahExport, 'Laporan-Data-Nasabah-' . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportStockOpname(Request $request)
+    {
+        $kategori = $request->get('kategori'); // null = semua
+        $suffix = $kategori ? ucfirst($kategori) : 'Semua';
+        return Excel::download(new StockOpnameExport($kategori), "Laporan-Stock-Opname-{$suffix}-" . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportUangMasuk()
+    {
+        return Excel::download(new UangMasukExport, 'Laporan-Uang-Masuk-' . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportUangDipinjam()
+    {
+        return Excel::download(new UangDipinjamExport, 'Laporan-Uang-Dipinjam-' . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportJatuhTempo()
+    {
+        return Excel::download(new JatuhTempoExport, 'Laporan-Jatuh-Tempo-' . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportBarangLelang(Request $request)
+    {
+        $status = $request->get('status'); // 'terjual', 'belum', or null
+        $suffix = $status === 'terjual' ? 'Terjual' : ($status === 'belum' ? 'BelumTerjual' : 'Semua');
+        return Excel::download(new BarangLelangExport($status), "Laporan-Barang-Lelang-{$suffix}-" . now()->format('Ymd') . '.xlsx');
+    }
+
+    public function exportPinjaman()
+    {
+        return Excel::download(new PinjamanExport, 'Laporan-Pinjaman-' . now()->format('Ymd') . '.xlsx');
     }
 }

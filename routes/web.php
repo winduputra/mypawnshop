@@ -67,6 +67,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('pengaturan', [SettingController::class, 'update'])->name('pengaturan.update');
         Route::resource('kasir', KasirController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+
+        // Excel Export Routes
+        Route::get('laporan/export/nasabah', [LaporanController::class, 'exportNasabah'])->name('laporan.export.nasabah');
+        Route::get('laporan/export/stock-opname', [LaporanController::class, 'exportStockOpname'])->name('laporan.export.stock-opname');
+        Route::get('laporan/export/uang-masuk', [LaporanController::class, 'exportUangMasuk'])->name('laporan.export.uang-masuk');
+        Route::get('laporan/export/uang-dipinjam', [LaporanController::class, 'exportUangDipinjam'])->name('laporan.export.uang-dipinjam');
+        Route::get('laporan/export/jatuh-tempo', [LaporanController::class, 'exportJatuhTempo'])->name('laporan.export.jatuh-tempo');
+        Route::get('laporan/export/barang-lelang', [LaporanController::class, 'exportBarangLelang'])->name('laporan.export.barang-lelang');
+        Route::get('laporan/export/pinjaman', [LaporanController::class, 'exportPinjaman'])->name('laporan.export.pinjaman');
     });
 });
 

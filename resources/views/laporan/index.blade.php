@@ -4,8 +4,8 @@
     @section('content')
     <div class="max-w-7xl mx-auto">
 
-        {{-- Cabang Filter (admin only) --}}
-        @if(auth()->user()->role === 'admin')
+        {{-- Cabang Filter (admin/owner/superadmin) --}}
+        @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin']))
         <form method="GET" action="{{ route('laporan.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
             <input type="hidden" name="period" value="{{ $period }}">
             <div class="flex-1 min-w-[200px]">
@@ -24,7 +24,7 @@
         @endif
 
         @if($selectedCabang)
-        <div class="mb-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20">
+        <div class="mb-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200">
             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -32,6 +32,135 @@
             Menampilkan data Cabang: <strong class="ml-1">{{ $selectedCabang->nama_cabang }}</strong>
         </div>
         @endif
+
+        {{-- Download Laporan Excel Section --}}
+        <div class="mb-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <button onclick="document.getElementById('export-section').classList.toggle('hidden')" class="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-50 rounded-lg">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-sm font-semibold text-slate-800">Download Laporan Excel</h3>
+                        <p class="text-xs text-slate-500">Export data ke file Excel (.xlsx)</p>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="export-section" class="hidden border-t border-slate-200 p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {{-- 1. Data Nasabah --}}
+                    <a href="{{ route('laporan.export.nasabah') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Data Nasabah</p>
+                            <p class="text-[10px] text-slate-400">Seluruh data nasabah</p>
+                        </div>
+                    </a>
+
+                    {{-- 2. Stock Opname - Semua --}}
+                    <a href="{{ route('laporan.export.stock-opname') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors">
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Stock Opname (Semua)</p>
+                            <p class="text-[10px] text-slate-400">Semua barang jaminan aktif</p>
+                        </div>
+                    </a>
+
+                    {{-- 2b. Stock Opname per Kategori --}}
+                    @foreach(['elektronik', 'emas', 'kendaraan'] as $kat)
+                    <a href="{{ route('laporan.export.stock-opname', ['kategori' => $kat]) }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 {{ $kat === 'emas' ? 'bg-yellow-50' : ($kat === 'elektronik' ? 'bg-sky-50' : 'bg-green-50') }} rounded-lg transition-colors">
+                            <svg class="w-4 h-4 {{ $kat === 'emas' ? 'text-yellow-600' : ($kat === 'elektronik' ? 'text-sky-600' : 'text-green-600') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Stock {{ ucfirst($kat) }}</p>
+                            <p class="text-[10px] text-slate-400">Kategori {{ $kat }}</p>
+                        </div>
+                    </a>
+                    @endforeach
+
+                    {{-- 3. Uang Masuk --}}
+                    <a href="{{ route('laporan.export.uang-masuk') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Uang Masuk</p>
+                            <p class="text-[10px] text-slate-400">Ijarah, Admin, Admin Lelang</p>
+                        </div>
+                    </a>
+
+                    {{-- 4. Uang Dipinjam --}}
+                    <a href="{{ route('laporan.export.uang-dipinjam') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-rose-50 rounded-lg group-hover:bg-rose-100 transition-colors">
+                            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Uang Dipinjam Nasabah</p>
+                            <p class="text-[10px] text-slate-400">Outstanding pinjaman aktif</p>
+                        </div>
+                    </a>
+
+                    {{-- 5. Jatuh Tempo --}}
+                    <a href="{{ route('laporan.export.jatuh-tempo') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                            <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Nasabah Jatuh Tempo</p>
+                            <p class="text-[10px] text-slate-400">Daftar jatuh tempo aktif</p>
+                        </div>
+                    </a>
+
+                    {{-- 6. Barang Lelang --}}
+                    <a href="{{ route('laporan.export.barang-lelang') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Barang Lelang (Semua)</p>
+                            <p class="text-[10px] text-slate-400">Terjual & belum terjual</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('laporan.export.barang-lelang', ['status' => 'terjual']) }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Lelang Terjual</p>
+                            <p class="text-[10px] text-slate-400">Yang sudah terjual</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('laporan.export.barang-lelang', ['status' => 'belum']) }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors">
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Lelang Belum Terjual</p>
+                            <p class="text-[10px] text-slate-400">Yang belum terjual</p>
+                        </div>
+                    </a>
+
+                    {{-- 7. Pinjaman --}}
+                    <a href="{{ route('laporan.export.pinjaman') }}" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group">
+                        <div class="p-2 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-slate-700">Laporan Pinjaman</p>
+                            <p class="text-[10px] text-slate-400">Semua data pinjaman</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
 
         <!-- Period Tabs -->
         <div class="mb-8 flex space-x-3">
