@@ -62,7 +62,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin-only routes
     Route::middleware(AdminMiddleware::class)->group(function () {
         Route::resource('cabang', \App\Http\Controllers\CabangController::class);
-        Route::resource('tarif-ujrah', \App\Http\Controllers\TarifUjrahController::class)->except(['index', 'create', 'show', 'edit']);
         Route::get('pengaturan', [SettingController::class, 'index'])->name('pengaturan.index');
         Route::put('pengaturan', [SettingController::class, 'update'])->name('pengaturan.update');
         Route::resource('kasir', KasirController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);

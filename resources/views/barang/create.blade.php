@@ -99,18 +99,21 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Foto 1 <span class="text-rose-400">*</span></label>
-                            <input type="file" name="foto_1" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400" required>
+                            <input type="file" name="foto_1" accept="image/jpeg,image/png" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400" required>
+                            @error('foto_1') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Foto 2</label>
-                            <input type="file" name="foto_2" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            <input type="file" name="foto_2" accept="image/jpeg,image/png" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            @error('foto_2') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Foto 3</label>
-                            <input type="file" name="foto_3" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            <input type="file" name="foto_3" accept="image/jpeg,image/png" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            @error('foto_3') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-2">Minimal 1 foto wajib. Maks 2MB per file (JPG/PNG).</p>
+                    <p class="text-[10px] text-slate-500 mt-2">Minimal 1 foto wajib. JPG/JPEG/PNG maks 500KB per file.</p>
                 </div>
             </div>
         </div>

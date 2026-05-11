@@ -51,7 +51,9 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">Foto KTP <span class="text-rose-400">*</span></label>
-                        <input type="file" name="foto_ktp" class="w-full text-slate-500 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
+                        <input type="file" name="foto_ktp" accept="image/jpeg,image/png" class="w-full text-slate-500 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20" required>
+                        <p class="text-[10px] text-slate-500 mt-1">JPG/JPEG/PNG maks 500KB.</p>
+                        @error('foto_ktp') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

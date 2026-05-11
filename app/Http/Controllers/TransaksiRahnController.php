@@ -300,6 +300,64 @@ class TransaksiRahnController extends Controller
         return view('transaksi.show', compact('transaksi', 'noTeleponCs'));
     }
 
+    public function edit(TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'kasir' || !in_array($transaksi->status_approval, ['draft', 'pending'])) {
+            abort(403);
+        }
+
+        $transaksi->load('nasabah', 'detailTransaksi.barang');
+        $settings = Setting::all()->pluck('value', 'key');
+
+        return view('transaksi.edit', compact('transaksi', 'settings'));
+    }
+
+    public function update(Request $request, TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'kasir' || !in_array($transaksi->status_approval, ['draft', 'pending'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'tanggal_transaksi' => 'required|date',
+            'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman',
+            'total_pinjaman' => 'required|numeric|min:1',
+        ]);
+
+        return DB::transaction(function () use ($request, $transaksi) {
+            $detail = $transaksi->detailTransaksi()->with('barang')->firstOrFail();
+            $barang = $detail->barang;
+            $tenor = 30;
+            $maxPinjaman = $barang->taksiran * Setting::getLoanPercentage($barang->kategori);
+            $pinjaman = min((float) $request->total_pinjaman, $maxPinjaman);
+            $ujrah = $barang->taksiran * (Setting::getIjarahPersen() / 100);
+            $biayaAdmin = Setting::getBiayaAdmin($barang->kategori);
+            $tanggalTrx = Carbon::parse($request->tanggal_transaksi);
+
+            $transaksi->update([
+                'tanggal_transaksi' => $request->tanggal_transaksi,
+                'total_taksiran' => $barang->taksiran,
+                'total_pinjaman' => $pinjaman,
+                'sisa_pinjaman' => $pinjaman,
+                'biaya_admin' => $biayaAdmin,
+                'biaya_penitipan' => $ujrah,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'ujrah_per_30hari' => $ujrah,
+                'tenor_hari' => $tenor,
+                'tanggal_jatuh_tempo' => $tanggalTrx->copy()->addDays($tenor),
+                'tanggal_batas_lelang' => $tanggalTrx->copy()->addDays($tenor + 7),
+            ]);
+
+            $detail->update([
+                'taksiran_item' => $barang->taksiran,
+                'pinjaman_item' => $pinjaman,
+            ]);
+
+            return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad berhasil diperbarui. Silakan kirim ulang ke admin.');
+        });
+    }
     public function cetakKontrak(TransaksiRahn $transaksi)
     {
         if ($transaksi->status_approval !== 'disetujui') {

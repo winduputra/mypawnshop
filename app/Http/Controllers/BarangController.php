@@ -73,9 +73,9 @@ class BarangController extends Controller
             'kondisi_fisik' => 'nullable',
             'deskripsi'     => 'nullable',
             'taksiran'      => 'required|numeric|min:0',
-            'foto_1'        => 'required|image|max:2048',
-            'foto_2'        => 'nullable|image|max:2048',
-            'foto_3'        => 'nullable|image|max:2048',
+            'foto_1'        => 'required|mimes:jpeg,jpg,png|max:500',
+            'foto_2'        => 'nullable|mimes:jpeg,jpg,png|max:500',
+            'foto_3'        => 'nullable|mimes:jpeg,jpg,png|max:500',
         ]);
 
         $data = $request->only([
@@ -134,9 +134,9 @@ class BarangController extends Controller
             'kondisi_fisik' => 'nullable',
             'deskripsi'     => 'nullable',
             'taksiran'      => 'required|numeric|min:0',
-            'foto_1'        => 'nullable|image|max:2048',
-            'foto_2'        => 'nullable|image|max:2048',
-            'foto_3'        => 'nullable|image|max:2048',
+            'foto_1'        => 'nullable|mimes:jpeg,jpg,png|max:500',
+            'foto_2'        => 'nullable|mimes:jpeg,jpg,png|max:500',
+            'foto_3'        => 'nullable|mimes:jpeg,jpg,png|max:500',
         ]);
 
         $data = $request->only([

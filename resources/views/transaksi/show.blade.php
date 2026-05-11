@@ -12,6 +12,7 @@
         <div class="flex flex-wrap gap-2">
             {{-- Kasir: Kirim ke Admin --}}
             @if(in_array($transaksi->status_approval, ['draft','pending']) && auth()->user()->role === 'kasir')
+            <a href="{{ route('transaksi.edit', $transaksi) }}" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10">Edit Akad</a>
             <form action="{{ route('transaksi.kirim', $transaksi) }}" method="POST" onsubmit="return confirm('Kirim akad ke admin untuk verifikasi?');">@csrf
                 <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-5 py-2 rounded-xl text-sm font-semibold">Kirim ke Admin</button>
             </form>
@@ -127,7 +128,7 @@
             <h3 class="text-xl font-bold text-slate-800 mb-6">Pelunasan</h3>
             <form action="{{ route('transaksi.pelunasan', $transaksi) }}" method="POST" class="space-y-6">@csrf
                 <div class="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><p class="text-xs text-emerald-400 uppercase font-semibold">Sisa Pinjaman</p><p class="text-2xl font-bold text-slate-800">Rp {{ number_format($transaksi->sisa_pinjaman, 0, ',', '.') }}</p></div>
-                <div><label class="block text-sm text-slate-500 mb-2">Jumlah Bayar</label><input type="text" name="total_bayar" value="{{ $transaksi->sisa_pinjaman }}" class="currency-input w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-xl px-4 py-3 text-slate-800" required></div>
+                <div><label class="block text-sm text-slate-500 mb-2">Jumlah Bayar</label><input type="text" value="{{ number_format($transaksi->sisa_pinjaman, 0, ',', '.') }}" class="w-full bg-slate-100 border border-slate-300 rounded-xl px-4 py-3 text-slate-800 cursor-not-allowed" readonly><p class="text-xs text-slate-500 mt-1">Nominal pelunasan otomatis sesuai sisa pokok pinjaman.</p></div>
                 <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all w-full py-4 rounded-xl">Proses Pelunasan</button>
             </form>
         </div>

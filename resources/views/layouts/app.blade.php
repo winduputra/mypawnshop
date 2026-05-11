@@ -148,6 +148,29 @@
                     </div>
                 </header>
 
+                @if(session('success'))
+                    <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-600">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                @if(isset($errors) && $errors->any())
+                    <div class="mb-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-600">
+                        <p class="font-semibold">Periksa kembali isian form:</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @yield('content')
             </main>
         </div>

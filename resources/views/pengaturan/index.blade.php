@@ -96,56 +96,6 @@
         </div>
     </form>
 
-    {{-- Tarif Ujrah Ranges --}}
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-        <h3 class="text-base font-semibold text-amber-400 mb-5">Tarif Biaya Penitipan per Range</h3>
-        <p class="text-xs text-slate-500 mb-4">Override biaya penitipan berdasarkan range nilai taksiran. Jika tidak masuk range, menggunakan persentase Ijarah di atas.</p>
-        <div class="overflow-x-auto mb-6">
-            <table class="w-full text-left text-sm">
-                <thead>
-                    <tr class="text-xs font-semibold text-slate-500 uppercase bg-white border-b border-slate-300">
-                        <th class="px-4 py-3">Kategori</th><th class="px-4 py-3">Min. Taksiran</th><th class="px-4 py-3">Max. Taksiran</th><th class="px-4 py-3">Tarif (Rp)</th><th class="px-4 py-3 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    @forelse($tarifUjrahs as $tarif)
-                    <tr class="hover:bg-white">
-                        <td class="px-4 py-3 text-slate-800 capitalize"><span class="w-2 h-2 rounded-full mr-2 inline-block {{ $tarif->kategori_barang == 'emas' ? 'bg-yellow-400' : ($tarif->kategori_barang == 'elektronik' ? 'bg-blue-400' : 'bg-green-400') }}"></span>{{ $tarif->kategori_barang }}</td>
-                        <td class="px-4 py-3 font-mono text-sky-400">Rp {{ number_format($tarif->min_taksiran, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 font-mono text-sky-400">Rp {{ number_format($tarif->max_taksiran, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 font-mono text-emerald-400 font-medium">Rp {{ number_format($tarif->tarif, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-right">
-                            <form action="{{ route('tarif-ujrah.destroy', $tarif) }}" method="POST" class="inline" onsubmit="return confirm('Hapus?');">@csrf @method('DELETE')
-                                <button type="submit" class="text-rose-400 hover:text-rose-300"><svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">Belum ada pengaturan range tarif.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="bg-white rounded-xl p-5 border border-slate-300">
-            <h4 class="text-xs font-semibold text-slate-800 mb-3">Tambah Range Baru</h4>
-            <form action="{{ route('tarif-ujrah.store') }}" method="POST">@csrf
-                <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 items-end">
-                    <div>
-                        <label class="block text-xs text-slate-500 mb-1">Kategori</label>
-                        <select name="kategori_barang" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm" required>
-                            <option value="emas" class="bg-white">Emas</option>
-                            <option value="elektronik" class="bg-white">Elektronik</option>
-                            <option value="kendaraan" class="bg-white">Kendaraan</option>
-                        </select>
-                    </div>
-                    <div><label class="block text-xs text-slate-500 mb-1">Min. Taksiran</label><input type="text" name="min_taksiran" class="currency-input w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm" required></div>
-                    <div><label class="block text-xs text-slate-500 mb-1">Max. Taksiran</label><input type="text" name="max_taksiran" class="currency-input w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm" required></div>
-                    <div><label class="block text-xs text-slate-500 mb-1">Tarif Ujrah</label><input type="text" name="tarif" class="currency-input w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm" required></div>
-                    <div><button type="submit" class="w-full bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-4 py-2 rounded-lg text-sm">Tambah</button></div>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 @endsection
 </x-app-layout>

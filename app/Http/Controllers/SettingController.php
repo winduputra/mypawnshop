@@ -11,7 +11,7 @@ class SettingController extends Controller
     {
         $settings = Setting::all()->groupBy('group');
         $tarifUjrahs = \App\Models\TarifUjrah::orderBy('kategori_barang')->orderBy('min_taksiran')->get();
-        return view('pengaturan.index', compact('settings', 'tarifUjrahs'));
+        return view('pengaturan.index', compact('settings'));
     }
 
     public function update(Request $request)
@@ -22,9 +22,6 @@ class SettingController extends Controller
             'biaya_admin_kendaraan' => 'required|numeric|min:0',
             'ijarah_persen' => 'required|numeric|min:0|max:100',
             'no_telepon_cs' => 'required|string|min:10|max:20',
-            'ujrah_emas' => 'required|numeric|min:0',
-            'ujrah_elektronik' => 'required|numeric|min:0',
-            'ujrah_kendaraan' => 'required|numeric|min:0',
             'persentase_emas' => 'required|numeric|min:1|max:100',
             'persentase_elektronik' => 'required|numeric|min:1|max:100',
             'persentase_kendaraan' => 'required|numeric|min:1|max:100',
@@ -33,7 +30,6 @@ class SettingController extends Controller
         $keys = [
             'biaya_admin_elektronik', 'biaya_admin_emas', 'biaya_admin_kendaraan',
             'ijarah_persen',
-            'ujrah_emas', 'ujrah_elektronik', 'ujrah_kendaraan',
             'persentase_emas', 'persentase_elektronik', 'persentase_kendaraan',
             'no_telepon_cs',
         ];

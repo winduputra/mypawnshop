@@ -11,21 +11,30 @@ class PelunasanController extends Controller
 {
     public function store(Request $request, TransaksiRahn $transaksi)
     {
-        $request->validate([
-            'total_bayar' => 'required|numeric|min:0',
-        ]);
+        if (!in_array($transaksi->status, ['aktif', 'diperpanjang'])) {
+            return back()->with('error', 'Transaksi tidak dapat dilunasi.');
+        }
 
-        return \DB::transaction(function () use ($request, $transaksi) {
+        $sisaPinjaman = (float) $transaksi->sisa_pinjaman;
+
+        if ($sisaPinjaman <= 0) {
+            return back()->with('error', 'Sisa pinjaman sudah tidak ada.');
+        }
+
+        return \DB::transaction(function () use ($transaksi, $sisaPinjaman) {
             Pelunasan::create([
                 'transaksi_rahn_id' => $transaksi->id,
                 'user_id' => Auth::id(),
                 'tanggal_pelunasan' => now()->toDateString(),
-                'total_pinjaman' => $transaksi->total_pinjaman,
-                'total_ujrah' => $request->total_bayar - $transaksi->total_pinjaman,
-                'total_bayar' => $request->total_bayar,
+                'total_pinjaman' => $sisaPinjaman,
+                'total_ujrah' => 0,
+                'total_bayar' => $sisaPinjaman,
             ]);
 
-            $transaksi->update(['status' => 'lunas']);
+            $transaksi->update([
+                'sisa_pinjaman' => 0,
+                'status' => 'lunas',
+            ]);
 
             return redirect()->back()->with('success', 'Transaksi berhasil dilunasi.');
         });

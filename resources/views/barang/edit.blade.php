@@ -91,11 +91,12 @@
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">{{ $label }}</label>
                             @if($foto)<div class="mb-2"><img src="{{ asset('storage/'.$foto->foto_path) }}" class="w-full h-16 object-cover rounded-lg border border-slate-300"></div>@endif
-                            <input type="file" name="{{ $key }}" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            <input type="file" name="{{ $key }}" accept="image/jpeg,image/png" class="w-full text-slate-500 text-xs file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400">
+                            @error($key) <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         @endforeach
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-2">Kosongkan jika tidak ingin mengubah foto.</p>
+                    <p class="text-[10px] text-slate-500 mt-2">Kosongkan jika tidak ingin mengubah foto. JPG/JPEG/PNG maks 500KB per file.</p>
                 </div>
             </div>
         </div>

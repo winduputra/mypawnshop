@@ -55,8 +55,9 @@
                         @if($nasabah->foto_ktp)
                         <div class="mb-2"><img src="{{ asset('storage/' . $nasabah->foto_ktp) }}" alt="KTP" class="w-28 rounded-lg border border-slate-300"></div>
                         @endif
-                        <input type="file" name="foto_ktp" class="w-full text-slate-500 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
-                        <p class="text-[10px] text-slate-500 mt-1">Kosongkan jika tidak ingin mengubah</p>
+                        <input type="file" name="foto_ktp" accept="image/jpeg,image/png" class="w-full text-slate-500 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20">
+                        <p class="text-[10px] text-slate-500 mt-1">Kosongkan jika tidak ingin mengubah. JPG/JPEG/PNG maks 500KB.</p>
+                        @error('foto_ktp') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
