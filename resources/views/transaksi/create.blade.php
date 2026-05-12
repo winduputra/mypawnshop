@@ -58,9 +58,8 @@
                             <select name="metode_pembayaran" id="metodePembayaran" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm" required>
                                 <option value="potong_pinjaman" class="bg-white">Dipotong dari Pinjaman</option>
                                 <option value="bayar_dimuka" class="bg-white">Dibayar di Awal (Cash)</option>
-                                <option value="bayar_pelunasan" class="bg-white">Dibayar Saat Pelunasan</option>
                             </select>
-                            <p class="text-[10px] text-slate-500 mt-1">Jika dibayar saat pelunasan, nasabah menerima penuh sesuai jumlah pinjaman.</p>
+                            <p class="text-[10px] text-slate-500 mt-1">Biaya admin + penitipan dipotong atau dibayar terpisah.</p>
                         </div>
                     </div>
                 </div>
@@ -191,8 +190,7 @@ function updateSummary() {
     let diterima = metode === 'potong_pinjaman' ? totalPinjaman - totalBiaya : totalPinjaman;
     const metodeLabels = {
         potong_pinjaman: 'Potong Pinjaman',
-        bayar_dimuka: 'Bayar di Awal',
-        bayar_pelunasan: 'Bayar Saat Pelunasan'
+        bayar_dimuka: 'Bayar di Awal'
     };
     document.getElementById('sumTaksiran').innerText = fmt.format(totalTaksiran);
     document.getElementById('sumPinjaman').innerText = fmt.format(totalPinjaman);

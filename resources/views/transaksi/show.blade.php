@@ -17,6 +17,14 @@
                 <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-5 py-2 rounded-xl text-sm font-semibold">Kirim ke Admin</button>
             </form>
             @endif
+            @if($transaksi->status_approval === 'menunggu_persetujuan_nasabah' && auth()->user()->role === 'kasir')
+            <form action="{{ route('transaksi.nasabah-setuju', $transaksi) }}" method="POST" onsubmit="return confirm('Nasabah setuju dengan nilai taksiran final? ID akad akan diterbitkan.');">@csrf
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">Nasabah Setuju</button>
+            </form>
+            <form action="{{ route('transaksi.nasabah-tidak-setuju', $transaksi) }}" method="POST" onsubmit="return confirm('Nasabah tidak setuju? Transaksi akan ditutup tanpa ID akad.');">@csrf
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">Nasabah Tidak Setuju</button>
+            </form>
+            @endif
             {{-- Admin: Review --}}
             @if($transaksi->status_approval === 'dikirim' && in_array(auth()->user()->role, ['admin','owner']))
             <a href="{{ route('transaksi.review', $transaksi) }}" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-5 py-2 rounded-xl text-sm font-semibold">Review Akad</a>
@@ -38,9 +46,16 @@
 
     {{-- Catatan Admin --}}
     @if($transaksi->catatan_admin)
-    <div class="mb-6 p-4 rounded-xl border {{ $transaksi->status_approval === 'pending' ? 'bg-amber-500/10 border-amber-500/20' : ($transaksi->status_approval === 'ditolak' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20') }}">
-        <p class="text-xs font-semibold uppercase {{ $transaksi->status_approval === 'pending' ? 'text-amber-400' : ($transaksi->status_approval === 'ditolak' ? 'text-rose-400' : 'text-emerald-400') }} mb-1">Catatan Admin</p>
+    <div class="mb-6 p-4 rounded-xl border {{ in_array($transaksi->status_approval, ['pending','menunggu_persetujuan_nasabah']) ? 'bg-amber-500/10 border-amber-500/20' : ($transaksi->status_approval === 'ditolak' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20') }}">
+        <p class="text-xs font-semibold uppercase {{ in_array($transaksi->status_approval, ['pending','menunggu_persetujuan_nasabah']) ? 'text-amber-400' : ($transaksi->status_approval === 'ditolak' ? 'text-rose-400' : 'text-emerald-400') }} mb-1">Catatan Admin</p>
         <p class="text-sm text-slate-800">{{ $transaksi->catatan_admin }}</p>
+    </div>
+    @endif
+
+    @if($transaksi->status_approval === 'menunggu_persetujuan_nasabah')
+    <div class="mb-6 p-4 rounded-xl border bg-amber-500/10 border-amber-500/20">
+        <p class="text-xs font-semibold uppercase text-amber-400 mb-1">Menunggu Persetujuan Nasabah</p>
+        <p class="text-sm text-slate-800">Admin mengubah nilai taksiran final menjadi <strong>Rp {{ number_format($transaksi->taksiran_final ?? $transaksi->total_taksiran, 0, ',', '.') }}</strong>. Kasir perlu konfirmasi ke nasabah sebelum ID akad diterbitkan.</p>
     </div>
     @endif
 
@@ -72,9 +87,7 @@
                 $selisihHari = $jatuhTempoDate->diffInDays($todayDate, false);
                 $isOverdue = $selisihHari > 0 && $selisihHari <= 7;
                 $isBlocked = $selisihHari > 7;
-                $biayaDasarPerpanjangan = $transaksi->biaya_admin + $transaksi->biaya_penitipan;
-                $biayaMultiplierPerpanjangan = ($transaksi->metode_pembayaran === 'bayar_pelunasan' || $isOverdue) ? 2 : 1;
-                $biayaPerpanjangan = $biayaDasarPerpanjangan * $biayaMultiplierPerpanjangan;
+                $biayaPerpanjangan = $transaksi->biaya_penitipan;
             @endphp
 
             {{-- Extension history count (no limit) --}}
@@ -89,32 +102,32 @@
                 <p class="text-xs text-rose-400">Sudah melewati {{ $selisihHari }} hari dari jatuh tempo (maks 7 hari). Barang masuk periode lelang.</p>
             </div>
             @elseif($isOverdue)
-            {{-- Overdue 1-7 hari: Wajib bayar 2x, dapat +50 hari --}}
+            {{-- Overdue 1-7 hari: Bayar 1x penitipan, dapat +20 hari --}}
             <div class="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                 <p class="text-sm text-amber-600 font-semibold mb-1">⚠ Jatuh Tempo Telah Lewat {{ $selisihHari }} Hari</p>
-                <p class="text-xs text-amber-500">Wajib bayar 2x biaya admin dan penitipan. Tenor hanya bertambah <strong>50 hari</strong> dari tanggal jatuh tempo (bukan 60 hari). Denda berupa pengurangan 10 hari.</p>
+                <p class="text-xs text-amber-500">Bayar <strong>1x biaya penitipan</strong> tanpa biaya admin. Tenor bertambah <strong>20 hari</strong> dari tanggal jatuh tempo lama.</p>
             </div>
             <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
                 <div class="p-4 bg-rose-500/10 rounded-xl border border-rose-500/20 text-center">
-                    <p class="text-xs text-rose-400 uppercase font-semibold mb-1">Biaya Perpanjangan (2x Admin + Penitipan)</p>
+                    <p class="text-xs text-rose-400 uppercase font-semibold mb-1">Biaya Perpanjangan (1x Penitipan)</p>
                     <p class="text-3xl font-bold text-rose-600 font-mono">Rp {{ number_format($biayaPerpanjangan, 0, ',', '.') }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">2 × Rp {{ number_format($biayaDasarPerpanjangan, 0, ',', '.') }} · Tenor +50 hari</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Rp {{ number_format($transaksi->biaya_penitipan, 0, ',', '.') }} · Tenor +20 hari</p>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
                     <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
-                    <div class="flex justify-between"><span>Jatuh Tempo Baru</span><span class="font-semibold text-emerald-600">{{ $jatuhTempoDate->copy()->addDays(50)->format('d/m/Y') }}</span></div>
+                    <div class="flex justify-between"><span>Jatuh Tempo Baru</span><span class="font-semibold text-emerald-600">{{ $jatuhTempoDate->copy()->addDays(20)->format('d/m/Y') }}</span></div>
                 </div>
-                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-amber-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju membayar 2x biaya admin dan penitipan serta memperpanjang tenor 50 hari.</span></label>
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar 2x Biaya & Perpanjang 50 Hari</button>
+                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-amber-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju membayar 1x biaya penitipan tanpa biaya admin serta memperpanjang tenor 20 hari.</span></label>
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar Penitipan & Perpanjang 20 Hari</button>
             </form>
             @else
             {{-- Normal: belum jatuh tempo --}}
             <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
                 <div class="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-center">
-                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan ({{ $biayaMultiplierPerpanjangan }}x Admin + Penitipan)</p>
+                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan (1x Penitipan)</p>
                     <p class="text-3xl font-bold text-slate-800 font-mono">Rp {{ number_format($biayaPerpanjangan, 0, ',', '.') }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">{{ $biayaMultiplierPerpanjangan }} × Rp {{ number_format($biayaDasarPerpanjangan, 0, ',', '.') }} · Tenor +30 hari dari jatuh tempo</p>
-                    <p class="text-[10px] text-slate-500 mt-1">{{ $transaksi->metode_pembayaran === 'bayar_pelunasan' ? 'Biaya awal belum dibayar, jadi perpanjangan wajib bayar 2x biaya.' : 'Biaya awal sudah dibayar/dipotong, jadi perpanjangan cukup bayar 1x biaya.' }}</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Rp {{ number_format($transaksi->biaya_penitipan, 0, ',', '.') }} · Tenor +30 hari dari jatuh tempo</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Biaya admin tidak dikenakan lagi karena hanya dibayar 1x selama transaksi Rahn.</p>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
                     <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
@@ -146,13 +159,16 @@
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-wrap items-center justify-between gap-4 border-l-4 
                 @if($transaksi->status_approval === 'disetujui' && $transaksi->status === 'aktif') border-sky-500 
                 @elseif($transaksi->status === 'lunas') border-emerald-500 
-                @elseif($transaksi->status_approval === 'pending') border-amber-500 
+                @elseif(in_array($transaksi->status_approval, ['pending','menunggu_persetujuan_nasabah'])) border-amber-500 
                 @elseif($transaksi->status_approval === 'ditolak') border-rose-500 
                 @else border-slate-500 @endif">
                 <div>
                     <p class="text-xs text-slate-500 uppercase font-semibold">Status Approval</p>
-                    @php $apColors=['draft'=>'text-slate-500','dikirim'=>'text-blue-400','pending'=>'text-amber-400','disetujui'=>'text-emerald-400','ditolak'=>'text-rose-400']; @endphp
-                    <h3 class="text-2xl font-bold {{ $apColors[$transaksi->status_approval] ?? 'text-slate-800' }}">{{ strtoupper($transaksi->status_approval) }}</h3>
+                    @php
+                        $apColors=['draft'=>'text-slate-500','dikirim'=>'text-blue-400','pending'=>'text-amber-400','menunggu_persetujuan_nasabah'=>'text-amber-400','disetujui'=>'text-emerald-400','ditolak'=>'text-rose-400'];
+                        $apLabels=['menunggu_persetujuan_nasabah'=>'MENUNGGU PERSETUJUAN NASABAH'];
+                    @endphp
+                    <h3 class="text-2xl font-bold {{ $apColors[$transaksi->status_approval] ?? 'text-slate-800' }}">{{ $apLabels[$transaksi->status_approval] ?? strtoupper($transaksi->status_approval) }}</h3>
                     @if($transaksi->status !== 'draft' && $transaksi->status !== 'ditolak')
                     <p class="text-xs text-slate-500 mt-1">Status Transaksi: <span class="font-semibold text-slate-800">{{ strtoupper($transaksi->status) }}</span></p>
                     @endif
@@ -209,6 +225,9 @@
                             'resubmitted' => ['title' => 'Diajukan Ulang ke Admin', 'color' => 'bg-blue-500'],
                             'updated' => ['title' => 'Akad Diperbaiki Kasir', 'color' => 'bg-amber-500'],
                             'pending' => ['title' => 'Pending oleh Admin', 'color' => 'bg-amber-500'],
+                            'customer_confirmation_requested' => ['title' => 'Menunggu Persetujuan Nasabah', 'color' => 'bg-amber-500'],
+                            'customer_approved' => ['title' => 'Disetujui Nasabah', 'color' => 'bg-emerald-500'],
+                            'customer_rejected' => ['title' => 'Ditolak Nasabah', 'color' => 'bg-rose-500'],
                             'approved' => ['title' => 'Disetujui Admin', 'color' => 'bg-emerald-500'],
                             'rejected' => ['title' => 'Ditolak Admin', 'color' => 'bg-rose-500'],
                         ];

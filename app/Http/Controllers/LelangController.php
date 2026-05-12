@@ -105,6 +105,7 @@ class LelangController extends Controller
                 'biaya_lelang'       => $biaya,
                 'ijarah'             => $ijarah,
                 'sisa_pinjaman'      => $transaksi->sisa_pinjaman,
+                'sisa_untuk_nasabah' => $sisaDana,
                 'sisa_dana_kembali'  => $sisaDana,
                 'status_lelang'      => 'pending', // langsung kirim ke owner
             ]);
@@ -214,11 +215,12 @@ class LelangController extends Controller
         $sisaDana = max(0, $harga - $totalKewajiban);
 
         $lelang->update([
-            'harga_lelang'      => $harga,
-            'biaya_lelang'      => $biaya,
-            'sisa_dana_kembali' => $sisaDana,
-            'status_lelang'     => 'pending',
-            'catatan_owner'     => null,
+            'harga_lelang'       => $harga,
+            'biaya_lelang'       => $biaya,
+            'sisa_untuk_nasabah' => $sisaDana,
+            'sisa_dana_kembali'  => $sisaDana,
+            'status_lelang'      => 'pending',
+            'catatan_owner'      => null,
         ]);
 
         $lelang->transaksiRahn->update(['status' => 'lelang_pending']);

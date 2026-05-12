@@ -30,25 +30,19 @@ class PerpanjanganController extends Controller
                 return redirect()->back()->with('error', 'Perpanjangan tidak dapat dilakukan. Sudah melewati batas 7 hari dari jatuh tempo, barang masuk periode lelang.');
             }
 
-            $biayaDasar = $transaksi->biaya_admin + $transaksi->biaya_penitipan;
-            $biayaMultiplier = $transaksi->metode_pembayaran === 'bayar_pelunasan' ? 2 : 1;
+            $ujrahDibayar = $transaksi->biaya_penitipan;
 
-            // ─── CASE 2: Overdue 1-7 hari → Wajib bayar 2x biaya, dapat +50 hari ───
+            // ─── CASE 2: Overdue 1-7 hari → Bayar 1x penitipan, dapat +20 hari ───
             if ($selisihHari > 0 && $selisihHari <= 7) {
-                $tambahanHari = 50; // penalty: 50 instead of 60
-                $biayaMultiplier = 2;
-                $ujrahDibayar = $biayaDasar * $biayaMultiplier;
+                $tambahanHari = 20;
                 $isOverdue = true;
-                $catatan = "Perpanjangan overdue ({$selisihHari} hari lewat jatuh tempo). Bayar 2x biaya admin dan penitipan, mendapat +50 hari.";
+                $catatan = "Perpanjangan overdue ({$selisihHari} hari lewat jatuh tempo). Bayar 1x biaya penitipan tanpa biaya admin, mendapat +20 hari.";
             }
             // ─── CASE 3: Belum jatuh tempo → Normal +30 hari ───
             else {
                 $tambahanHari = 30;
-                $ujrahDibayar = $biayaDasar * $biayaMultiplier;
                 $isOverdue = false;
-                $catatan = $biayaMultiplier === 2
-                    ? 'Biaya awal ditunda sampai pelunasan, sehingga perpanjangan membayar 2x biaya admin dan penitipan.'
-                    : 'Biaya awal sudah dibayar/dipotong, sehingga perpanjangan membayar 1x biaya admin dan penitipan.';
+                $catatan = 'Perpanjangan membayar 1x biaya penitipan. Biaya admin hanya dibayar 1x selama transaksi Rahn.';
             }
 
             // Hitung tanggal baru selalu dari jatuh tempo lama (bukan dari hari ini)
@@ -86,8 +80,8 @@ class PerpanjanganController extends Controller
             ]);
 
             $message = $isOverdue
-                ? "Perpanjangan overdue berhasil. Tenor ditambah {$tambahanHari} hari (bayar 2x biaya admin dan penitipan). Nota: {$noNota}"
-                : "Tenor berhasil diperpanjang {$tambahanHari} hari (bayar {$biayaMultiplier}x biaya admin dan penitipan). Nota: {$noNota}";
+                ? "Perpanjangan overdue berhasil. Tenor ditambah {$tambahanHari} hari (bayar 1x biaya penitipan tanpa biaya admin). Nota: {$noNota}"
+                : "Tenor berhasil diperpanjang {$tambahanHari} hari (bayar 1x biaya penitipan tanpa biaya admin). Nota: {$noNota}";
 
             return redirect()->back()->with('success', $message)
                 ->with('perpanjangan_id', $perpanjangan->id);

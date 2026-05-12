@@ -53,13 +53,19 @@
             @endforeach
 
             {{-- Rincian Keuangan --}}
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            @php
+                $reviewDetail = $transaksi->detailTransaksi->first();
+                $reviewKategori = $reviewDetail && $reviewDetail->barang ? $reviewDetail->barang->kategori : '';
+                $reviewLoanRate = $reviewKategori ? \App\Models\Setting::getLoanPercentage($reviewKategori) : 0;
+                $reviewIjarahRate = \App\Models\Setting::getIjarahPersen() / 100;
+            @endphp
+            <div id="rincian_keuangan" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6" data-original-pinjaman="{{ (float) $transaksi->total_pinjaman }}" data-loan-rate="{{ $reviewLoanRate }}" data-ijarah-rate="{{ $reviewIjarahRate }}">
                 <h3 class="text-base font-semibold text-amber-400 mb-4">Rincian Keuangan (Kasir)</h3>
                 <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div><p class="text-xs text-slate-500">Total Taksiran</p><p class="text-xl font-bold text-slate-800">Rp {{ number_format($transaksi->total_taksiran,0,',','.') }}</p></div>
-                    <div><p class="text-xs text-slate-500">Pinjaman (QARD)</p><p class="text-xl font-bold text-sky-400">Rp {{ number_format($transaksi->total_pinjaman,0,',','.') }}</p></div>
+                    <div><p class="text-xs text-slate-500">Total Taksiran</p><p id="display_total_taksiran" class="text-xl font-bold text-slate-800">Rp {{ number_format($transaksi->total_taksiran,0,',','.') }}</p></div>
+                    <div><p class="text-xs text-slate-500">Pinjaman (QARD)</p><p id="display_total_pinjaman" class="text-xl font-bold text-sky-400">Rp {{ number_format($transaksi->total_pinjaman,0,',','.') }}</p></div>
                     <div><p class="text-xs text-slate-500">Biaya Admin</p><p class="text-slate-800 font-mono">Rp {{ number_format($transaksi->biaya_admin,0,',','.') }}</p></div>
-                    <div><p class="text-xs text-slate-500">Ijarah/30hr</p><p class="text-indigo-400 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari,0,',','.') }}</p></div>
+                    <div><p class="text-xs text-slate-500">Ijarah/30hr</p><p id="display_ujrah_per_30hari" class="text-indigo-400 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari,0,',','.') }}</p></div>
                     <div><p class="text-xs text-slate-500">Tenor</p><p class="text-slate-800">{{ $transaksi->tenor_hari }} Hari</p></div>
                     <div><p class="text-xs text-slate-500">Metode Biaya</p><p class="text-slate-800">{{ ['bayar_dimuka' => 'Bayar di Awal', 'potong_pinjaman' => 'Potong Pinjaman', 'bayar_pelunasan' => 'Bayar Saat Pelunasan'][$transaksi->metode_pembayaran] ?? '-' }}</p></div>
                 </div>
@@ -71,7 +77,7 @@
             {{-- SETUJU --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-t-4 border-emerald-500">
                 <h3 class="text-base font-semibold text-emerald-400 mb-4">✓ Setujui Akad</h3>
-                <form action="{{ route('transaksi.approve', $transaksi) }}" method="POST" onsubmit="return confirm('Setujui akad ini? Nomor register akan digenerate otomatis.');">
+                <form action="{{ route('transaksi.approve', $transaksi) }}" method="POST" onsubmit="return confirm('Setujui akad ini? Jika nilai taksiran final berubah, akad dikirim kembali ke kasir untuk persetujuan nasabah.');">
                     @csrf
                     <div class="mb-4">
                         <label class="block text-xs text-slate-500 mb-1">Nilai Taksiran Final (Rp) <span class="text-rose-400">*</span></label>
@@ -117,9 +123,24 @@
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
     const inp=document.getElementById('inp_taksiran_final');
+    const rincian=document.getElementById('rincian_keuangan');
+    const totalTaksiran=document.getElementById('display_total_taksiran');
+    const totalPinjaman=document.getElementById('display_total_pinjaman');
+    const ujrahPer30Hari=document.getElementById('display_ujrah_per_30hari');
+    const formatIDR=value=>'Rp '+Math.round(value||0).toLocaleString('id-ID');
+    const updateRincian=()=>{
+        const finalTaksiran=parseInt(inp.value.replace(/\D/g,''))||0;
+        const originalPinjaman=parseFloat(rincian.dataset.originalPinjaman)||0;
+        const loanRate=parseFloat(rincian.dataset.loanRate)||0;
+        const ijarahRate=parseFloat(rincian.dataset.ijarahRate)||0;
+        totalTaksiran.textContent=formatIDR(finalTaksiran);
+        totalPinjaman.textContent=formatIDR(Math.min(originalPinjaman,finalTaksiran*loanRate));
+        ujrahPer30Hari.textContent=formatIDR(finalTaksiran*ijarahRate);
+    };
     let v=inp.value.replace(/\D/g,'');
     if(v)inp.value=parseInt(v).toLocaleString('id-ID');
-    inp.addEventListener('input',function(){let v=this.value.replace(/\D/g,'');this.value=v?parseInt(v).toLocaleString('id-ID'):'';});
+    updateRincian();
+    inp.addEventListener('input',function(){let v=this.value.replace(/\D/g,'');this.value=v?parseInt(v).toLocaleString('id-ID'):'';updateRincian();});
     inp.closest('form').addEventListener('submit',function(){inp.value=inp.value.replace(/\D/g,'');});
 });
 </script>

@@ -203,6 +203,7 @@ class TransaksiRahnController extends Controller
 
         return DB::transaction(function () use ($request, $transaksi) {
             $taksiran_final = floatval($request->taksiran_final);
+            $taksiranAwal = (float) $transaksi->total_taksiran;
             $detail = $transaksi->detailTransaksi->first();
             $barang = $detail->barang;
 
@@ -214,18 +215,42 @@ class TransaksiRahnController extends Controller
             $ijarahPersen = Setting::getIjarahPersen();
             $ujrah = $taksiran_final * ($ijarahPersen / 100);
 
-            // Generate no_register_akad
-            $today = now()->format('Ymd');
-            $lastAkad = TransaksiRahn::whereNotNull('no_register_akad')
-                ->where('no_register_akad', 'like', "AKD-{$today}-%")
-                ->orderByDesc('no_register_akad')
-                ->first();
-            $seq = 1;
-            if ($lastAkad) {
-                $parts = explode('-', $lastAkad->no_register_akad);
-                $seq = intval(end($parts)) + 1;
+            if (abs($taksiran_final - $taksiranAwal) > 0.01) {
+                $transaksi->update([
+                    'no_register_akad' => null,
+                    'taksiran_final' => $taksiran_final,
+                    'total_taksiran' => $taksiran_final,
+                    'total_pinjaman' => $pinjaman,
+                    'sisa_pinjaman' => $pinjaman,
+                    'ujrah_per_30hari' => $ujrah,
+                    'biaya_penitipan' => $ujrah,
+                    'status' => 'draft',
+                    'status_approval' => 'menunggu_persetujuan_nasabah',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => null,
+                    'catatan_admin' => $request->catatan_admin,
+                ]);
+
+                $detail->update([
+                    'taksiran_item' => $taksiran_final,
+                    'pinjaman_item' => $pinjaman,
+                ]);
+
+                $barang->update([
+                    'taksiran' => $taksiran_final,
+                ]);
+
+                $transaksi->histories()->create([
+                    'user_id' => Auth::id(),
+                    'action' => 'customer_confirmation_requested',
+                    'status_approval' => 'menunggu_persetujuan_nasabah',
+                    'note' => $request->catatan_admin ?: 'Nilai taksiran final berubah, menunggu konfirmasi nasabah melalui kasir.',
+                ]);
+
+                return redirect()->route('transaksi.show', $transaksi)->with('success', 'Nilai taksiran final berubah. Transaksi dikirim kembali ke kasir untuk konfirmasi nasabah.');
             }
-            $noRegister = "AKD-{$today}-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+            $noRegister = $this->generateNoRegisterAkad();
 
             $transaksi->update([
                 'no_register_akad' => $noRegister,
@@ -262,6 +287,65 @@ class TransaksiRahnController extends Controller
 
             return redirect()->route('transaksi.show', $transaksi)->with('success', "Akad DISETUJUI. No Register: {$noRegister}");
         });
+    }
+
+    /**
+     * Cashier confirms that customer accepts admin final valuation.
+     */
+    public function nasabahSetuju(TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'kasir' || $transaksi->status_approval !== 'menunggu_persetujuan_nasabah') {
+            abort(403);
+        }
+
+        return DB::transaction(function () use ($transaksi) {
+            $noRegister = $this->generateNoRegisterAkad();
+
+            $transaksi->update([
+                'no_register_akad' => $noRegister,
+                'status' => 'aktif',
+                'status_approval' => 'disetujui',
+                'approved_by' => $transaksi->approved_by ?: Auth::id(),
+                'approved_at' => now(),
+            ]);
+
+            $transaksi->histories()->create([
+                'user_id' => Auth::id(),
+                'action' => 'customer_approved',
+                'status_approval' => 'disetujui',
+                'note' => "Nasabah menyetujui nilai taksiran final. Akad diterbitkan dengan nomor register {$noRegister}.",
+            ]);
+
+            return redirect()->route('transaksi.show', $transaksi)->with('success', "Nasabah setuju. Akad diterbitkan dengan No Register: {$noRegister}");
+        });
+    }
+
+    /**
+     * Cashier closes transaction when customer rejects admin final valuation.
+     */
+    public function nasabahTidakSetuju(TransaksiRahn $transaksi)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'kasir' || $transaksi->status_approval !== 'menunggu_persetujuan_nasabah') {
+            abort(403);
+        }
+
+        $transaksi->update([
+            'no_register_akad' => null,
+            'status' => 'ditolak',
+            'status_approval' => 'ditolak',
+            'catatan_admin' => trim(($transaksi->catatan_admin ? $transaksi->catatan_admin . "\n" : '') . 'Nasabah tidak setuju dengan nilai taksiran final.'),
+        ]);
+
+        $transaksi->histories()->create([
+            'user_id' => Auth::id(),
+            'action' => 'customer_rejected',
+            'status_approval' => 'ditolak',
+            'note' => 'Nasabah tidak setuju dengan nilai taksiran final. Transaksi ditutup tanpa nomor register akad.',
+        ]);
+
+        return redirect()->route('transaksi.show', $transaksi)->with('success', 'Nasabah tidak setuju. Transaksi ditutup tanpa nomor register akad.');
     }
 
     /**
@@ -481,5 +565,22 @@ class TransaksiRahnController extends Controller
         $pdf->setPaper('A4', 'portrait');
         
         return $pdf->download('Bukti-Angsuran-' . $transaksi->no_transaksi . '-' . $angsuranKe . '.pdf');
+    }
+
+    private function generateNoRegisterAkad(): string
+    {
+        $today = now()->format('Ymd');
+        $lastAkad = TransaksiRahn::whereNotNull('no_register_akad')
+            ->where('no_register_akad', 'like', "AKD-{$today}-%")
+            ->orderByDesc('no_register_akad')
+            ->first();
+
+        $seq = 1;
+        if ($lastAkad) {
+            $parts = explode('-', $lastAkad->no_register_akad);
+            $seq = intval(end($parts)) + 1;
+        }
+
+        return "AKD-{$today}-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 }

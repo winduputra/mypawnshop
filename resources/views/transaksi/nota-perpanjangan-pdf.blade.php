@@ -52,7 +52,7 @@
     <div class="lunas-badge {{ $perpanjangan->is_overdue_extension ? 'overdue' : '' }}">
         @if($perpanjangan->is_overdue_extension)
         <h2>PERPANJANGAN OVERDUE</h2>
-        <p style="font-size: 12px; color: #92400e;">Tenor diperpanjang {{ $perpanjangan->tambahan_tenor_hari }} hari (denda: bayar 2x ijarah, pengurangan 10 hari).</p>
+        <p style="font-size: 12px; color: #92400e;">Tenor diperpanjang {{ $perpanjangan->tambahan_tenor_hari }} hari (bayar 1x biaya penitipan, tanpa biaya admin).</p>
         @else
         <h2>PERPANJANGAN BERHASIL</h2>
         <p style="font-size: 12px; color: #4338ca;">Tenor transaksi telah diperpanjang {{ $perpanjangan->tambahan_tenor_hari }} hari.</p>
@@ -117,9 +117,9 @@
             <tr><td>Tambahan Tenor</td><td>: +{{ $perpanjangan->tambahan_tenor_hari }} hari</td></tr>
             <tr><td>Biaya Perpanjangan Dibayar</td><td>: <strong>Rp {{ number_format($perpanjangan->ujrah_dibayar, 0, ',', '.') }}</strong>
                 @if($perpanjangan->is_overdue_extension)
-                    (2x biaya admin dan penitipan)
+                    (1x biaya penitipan, tanpa biaya admin)
                 @else
-                    (sesuai metode pembayaran biaya akad)
+                    (1x biaya penitipan, tanpa biaya admin)
                 @endif
             </td></tr>
             <tr><td>Status Pembayaran</td><td>: <strong style="color: #16a34a;">LUNAS</strong></td></tr>
@@ -131,7 +131,7 @@
 
     @if($perpanjangan->is_overdue_extension)
     <div class="overdue-note">
-        <strong>Keterangan Overdue:</strong> Nasabah melewati jatuh tempo. Sesuai ketentuan, wajib membayar 2x biaya admin dan penitipan dan tenor hanya ditambah 50 hari (bukan 60 hari). Denda berupa pengurangan 10 hari masa tenor.
+        <strong>Keterangan Overdue:</strong> Nasabah melewati jatuh tempo kurang dari 7 hari. Sesuai ketentuan, bayar 1x biaya penitipan tanpa biaya admin dan tenor bertambah 20 hari dari jatuh tempo lama.
     </div>
     @endif
 
