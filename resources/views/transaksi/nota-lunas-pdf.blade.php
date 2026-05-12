@@ -87,7 +87,7 @@
             <tr><td>Total Pinjaman Pokok</td><td>: Rp {{ number_format($transaksi->total_pinjaman, 0, ',', '.') }}</td></tr>
             <tr><td>Biaya Admin</td><td>: Rp {{ number_format($transaksi->biaya_admin, 0, ',', '.') }}</td></tr>
             <tr><td>Biaya Penitipan</td><td>: Rp {{ number_format($transaksi->biaya_penitipan, 0, ',', '.') }}</td></tr>
-            <tr><td>Metode Pembayaran Biaya</td><td>: {{ $transaksi->metode_pembayaran == 'bayar_dimuka' ? 'Dibayar di Awal' : 'Dipotong dari Pinjaman' }}</td></tr>
+            <tr><td>Metode Pembayaran Biaya</td><td>: {{ ['bayar_dimuka' => 'Dibayar di Awal', 'potong_pinjaman' => 'Dipotong dari Pinjaman', 'bayar_pelunasan' => 'Dibayar Saat Pelunasan'][$transaksi->metode_pembayaran] ?? '-' }}</td></tr>
         </table>
 
         @if($transaksi->angsuran->count() > 0)

@@ -47,6 +47,7 @@
                 <select name="metode_pembayaran" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800" required>
                     <option value="potong_pinjaman" @selected(old('metode_pembayaran', $transaksi->metode_pembayaran) === 'potong_pinjaman')>Dipotong dari Pinjaman</option>
                     <option value="bayar_dimuka" @selected(old('metode_pembayaran', $transaksi->metode_pembayaran) === 'bayar_dimuka')>Dibayar di Awal (Cash)</option>
+                    <option value="bayar_pelunasan" @selected(old('metode_pembayaran', $transaksi->metode_pembayaran) === 'bayar_pelunasan')>Dibayar Saat Pelunasan</option>
                 </select>
             </div>
             <button type="submit" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-3 px-4 rounded-xl shadow-sm transition-all w-full">Simpan Perbaikan</button>

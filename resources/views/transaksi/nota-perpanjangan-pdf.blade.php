@@ -115,11 +115,11 @@
             <tr><td>Jatuh Tempo Sebelumnya</td><td>: {{ \Carbon\Carbon::parse($perpanjangan->tanggal_jatuh_tempo_baru)->subDays($perpanjangan->tambahan_tenor_hari)->format('d F Y') }}</td></tr>
             <tr><td><strong>Jatuh Tempo Baru</strong></td><td>: <strong>{{ \Carbon\Carbon::parse($perpanjangan->tanggal_jatuh_tempo_baru)->format('d F Y') }}</strong></td></tr>
             <tr><td>Tambahan Tenor</td><td>: +{{ $perpanjangan->tambahan_tenor_hari }} hari</td></tr>
-            <tr><td>Biaya Ijarah Dibayar</td><td>: <strong>Rp {{ number_format($perpanjangan->ujrah_dibayar, 0, ',', '.') }}</strong>
+            <tr><td>Biaya Perpanjangan Dibayar</td><td>: <strong>Rp {{ number_format($perpanjangan->ujrah_dibayar, 0, ',', '.') }}</strong>
                 @if($perpanjangan->is_overdue_extension)
-                    (2x ijarah)
+                    (2x biaya admin dan penitipan)
                 @else
-                    (1x ijarah)
+                    (sesuai metode pembayaran biaya akad)
                 @endif
             </td></tr>
             <tr><td>Status Pembayaran</td><td>: <strong style="color: #16a34a;">LUNAS</strong></td></tr>
@@ -131,7 +131,7 @@
 
     @if($perpanjangan->is_overdue_extension)
     <div class="overdue-note">
-        <strong>Keterangan Overdue:</strong> Nasabah melewati jatuh tempo. Sesuai ketentuan, wajib membayar 2x biaya ijarah dan tenor hanya ditambah 50 hari (bukan 60 hari). Denda berupa pengurangan 10 hari masa tenor.
+        <strong>Keterangan Overdue:</strong> Nasabah melewati jatuh tempo. Sesuai ketentuan, wajib membayar 2x biaya admin dan penitipan dan tenor hanya ditambah 50 hari (bukan 60 hari). Denda berupa pengurangan 10 hari masa tenor.
     </div>
     @endif
 

@@ -59,4 +59,9 @@ class TransaksiRahn extends Model
     {
         return $this->hasMany(Angsuran::class);
     }
+
+    public function histories()
+    {
+        return $this->hasMany(TransaksiRahnHistory::class)->latest();
+    }
 }

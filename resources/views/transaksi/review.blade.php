@@ -61,7 +61,7 @@
                     <div><p class="text-xs text-slate-500">Biaya Admin</p><p class="text-slate-800 font-mono">Rp {{ number_format($transaksi->biaya_admin,0,',','.') }}</p></div>
                     <div><p class="text-xs text-slate-500">Ijarah/30hr</p><p class="text-indigo-400 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari,0,',','.') }}</p></div>
                     <div><p class="text-xs text-slate-500">Tenor</p><p class="text-slate-800">{{ $transaksi->tenor_hari }} Hari</p></div>
-                    <div><p class="text-xs text-slate-500">Metode Biaya</p><p class="text-slate-800">{{ $transaksi->metode_pembayaran == 'bayar_dimuka' ? 'Bayar di Awal' : 'Potong Pinjaman' }}</p></div>
+                    <div><p class="text-xs text-slate-500">Metode Biaya</p><p class="text-slate-800">{{ ['bayar_dimuka' => 'Bayar di Awal', 'potong_pinjaman' => 'Potong Pinjaman', 'bayar_pelunasan' => 'Bayar Saat Pelunasan'][$transaksi->metode_pembayaran] ?? '-' }}</p></div>
                 </div>
             </div>
         </div>

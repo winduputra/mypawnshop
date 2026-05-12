@@ -84,7 +84,7 @@ class TransaksiRahnController extends Controller
             'barang_id' => 'required|exists:barang,id',
             'pinjaman_items' => 'required|array',
             'tanggal_transaksi' => 'required|date',
-            'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman',
+            'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman,bayar_pelunasan',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -155,9 +155,18 @@ class TransaksiRahnController extends Controller
             return back()->with('error', 'Akad tidak dapat dikirim.');
         }
 
+        $wasPending = $transaksi->status_approval === 'pending';
+
         $transaksi->update([
             'status_approval' => 'dikirim',
             'catatan_admin' => null, // clear previous notes
+        ]);
+
+        $transaksi->histories()->create([
+            'user_id' => Auth::id(),
+            'action' => $wasPending ? 'resubmitted' : 'sent',
+            'status_approval' => 'dikirim',
+            'note' => $wasPending ? 'Akad diajukan ulang ke admin.' : 'Akad dikirim ke admin untuk verifikasi.',
         ]);
 
         return back()->with('success', 'Akad berhasil dikirim ke admin untuk diverifikasi.');
@@ -233,6 +242,13 @@ class TransaksiRahnController extends Controller
                 'catatan_admin' => $request->catatan_admin,
             ]);
 
+            $transaksi->histories()->create([
+                'user_id' => Auth::id(),
+                'action' => 'approved',
+                'status_approval' => 'disetujui',
+                'note' => $request->catatan_admin ?: "Akad disetujui dengan nomor register {$noRegister}.",
+            ]);
+
             // Update detail
             $detail->update([
                 'taksiran_item' => $taksiran_final,
@@ -267,6 +283,13 @@ class TransaksiRahnController extends Controller
             'catatan_admin' => $request->catatan_admin,
         ]);
 
+        $transaksi->histories()->create([
+            'user_id' => Auth::id(),
+            'action' => 'pending',
+            'status_approval' => 'pending',
+            'note' => $request->catatan_admin,
+        ]);
+
         return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad dikembalikan ke kasir dengan status PENDING.');
     }
 
@@ -290,12 +313,19 @@ class TransaksiRahnController extends Controller
             'catatan_admin' => $request->catatan_admin,
         ]);
 
+        $transaksi->histories()->create([
+            'user_id' => Auth::id(),
+            'action' => 'rejected',
+            'status_approval' => 'ditolak',
+            'note' => $request->catatan_admin,
+        ]);
+
         return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad DITOLAK.');
     }
 
     public function show(TransaksiRahn $transaksi)
     {
-        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan.user', 'pelunasan', 'lelang', 'angsuran.user');
+        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan.user', 'pelunasan', 'lelang', 'angsuran.user', 'histories.user');
         $noTeleponCs = Setting::getValue('no_telepon_cs', '6281234567890');
         return view('transaksi.show', compact('transaksi', 'noTeleponCs'));
     }
@@ -322,7 +352,7 @@ class TransaksiRahnController extends Controller
 
         $request->validate([
             'tanggal_transaksi' => 'required|date',
-            'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman',
+            'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman,bayar_pelunasan',
             'total_pinjaman' => 'required|numeric|min:1',
         ]);
 
@@ -353,6 +383,13 @@ class TransaksiRahnController extends Controller
             $detail->update([
                 'taksiran_item' => $barang->taksiran,
                 'pinjaman_item' => $pinjaman,
+            ]);
+
+            $transaksi->histories()->create([
+                'user_id' => Auth::id(),
+                'action' => 'updated',
+                'status_approval' => $transaksi->status_approval,
+                'note' => 'Kasir memperbaiki akad pending.',
             ]);
 
             return redirect()->route('transaksi.show', $transaksi)->with('success', 'Akad berhasil diperbarui. Silakan kirim ulang ke admin.');

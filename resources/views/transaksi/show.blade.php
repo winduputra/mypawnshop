@@ -72,6 +72,9 @@
                 $selisihHari = $jatuhTempoDate->diffInDays($todayDate, false);
                 $isOverdue = $selisihHari > 0 && $selisihHari <= 7;
                 $isBlocked = $selisihHari > 7;
+                $biayaDasarPerpanjangan = $transaksi->biaya_admin + $transaksi->biaya_penitipan;
+                $biayaMultiplierPerpanjangan = ($transaksi->metode_pembayaran === 'bayar_pelunasan' || $isOverdue) ? 2 : 1;
+                $biayaPerpanjangan = $biayaDasarPerpanjangan * $biayaMultiplierPerpanjangan;
             @endphp
 
             {{-- Extension history count (no limit) --}}
@@ -89,28 +92,29 @@
             {{-- Overdue 1-7 hari: Wajib bayar 2x, dapat +50 hari --}}
             <div class="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                 <p class="text-sm text-amber-600 font-semibold mb-1">⚠ Jatuh Tempo Telah Lewat {{ $selisihHari }} Hari</p>
-                <p class="text-xs text-amber-500">Wajib bayar 2x ijarah. Tenor hanya bertambah <strong>50 hari</strong> dari tanggal jatuh tempo (bukan 60 hari). Denda berupa pengurangan 10 hari.</p>
+                <p class="text-xs text-amber-500">Wajib bayar 2x biaya admin dan penitipan. Tenor hanya bertambah <strong>50 hari</strong> dari tanggal jatuh tempo (bukan 60 hari). Denda berupa pengurangan 10 hari.</p>
             </div>
             <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
                 <div class="p-4 bg-rose-500/10 rounded-xl border border-rose-500/20 text-center">
-                    <p class="text-xs text-rose-400 uppercase font-semibold mb-1">Biaya Perpanjangan (2x Ijarah)</p>
-                    <p class="text-3xl font-bold text-rose-600 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari * 2, 0, ',', '.') }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">2 × Rp {{ number_format($transaksi->ujrah_per_30hari, 0, ',', '.') }} · Tenor +50 hari</p>
+                    <p class="text-xs text-rose-400 uppercase font-semibold mb-1">Biaya Perpanjangan (2x Admin + Penitipan)</p>
+                    <p class="text-3xl font-bold text-rose-600 font-mono">Rp {{ number_format($biayaPerpanjangan, 0, ',', '.') }}</p>
+                    <p class="text-[10px] text-slate-500 mt-1">2 × Rp {{ number_format($biayaDasarPerpanjangan, 0, ',', '.') }} · Tenor +50 hari</p>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
                     <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
                     <div class="flex justify-between"><span>Jatuh Tempo Baru</span><span class="font-semibold text-emerald-600">{{ $jatuhTempoDate->copy()->addDays(50)->format('d/m/Y') }}</span></div>
                 </div>
-                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-amber-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju membayar 2x ijarah dan memperpanjang tenor 50 hari.</span></label>
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar 2x Ijarah & Perpanjang 50 Hari</button>
+                <label class="flex items-start cursor-pointer"><input type="checkbox" required class="w-5 h-5 border-slate-300 rounded bg-white text-amber-500 mr-3 mt-0.5"><span class="text-sm text-slate-600">Nasabah setuju membayar 2x biaya admin dan penitipan serta memperpanjang tenor 50 hari.</span></label>
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-4 px-4 rounded-xl shadow-sm transition-all w-full">Bayar 2x Biaya & Perpanjang 50 Hari</button>
             </form>
             @else
             {{-- Normal: belum jatuh tempo --}}
             <form action="{{ route('transaksi.perpanjang', $transaksi) }}" method="POST" class="space-y-6">@csrf
                 <div class="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-center">
-                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan (1x Ijarah)</p>
-                    <p class="text-3xl font-bold text-slate-800 font-mono">Rp {{ number_format($transaksi->ujrah_per_30hari, 0, ',', '.') }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Tenor +30 hari dari jatuh tempo</p>
+                    <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Biaya Perpanjangan ({{ $biayaMultiplierPerpanjangan }}x Admin + Penitipan)</p>
+                    <p class="text-3xl font-bold text-slate-800 font-mono">Rp {{ number_format($biayaPerpanjangan, 0, ',', '.') }}</p>
+                    <p class="text-[10px] text-slate-500 mt-1">{{ $biayaMultiplierPerpanjangan }} × Rp {{ number_format($biayaDasarPerpanjangan, 0, ',', '.') }} · Tenor +30 hari dari jatuh tempo</p>
+                    <p class="text-[10px] text-slate-500 mt-1">{{ $transaksi->metode_pembayaran === 'bayar_pelunasan' ? 'Biaya awal belum dibayar, jadi perpanjangan wajib bayar 2x biaya.' : 'Biaya awal sudah dibayar/dipotong, jadi perpanjangan cukup bayar 1x biaya.' }}</p>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1">
                     <div class="flex justify-between"><span>Jatuh Tempo Lama</span><span class="font-semibold text-slate-800">{{ $jatuhTempoDate->format('d/m/Y') }}</span></div>
@@ -199,7 +203,31 @@
                 <h3 class="text-base font-semibold text-amber-400 mb-4">Riwayat</h3>
                 <div class="relative pl-8 border-l border-slate-300 space-y-6">
                     <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-slate-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Draft Dibuat</p><p class="text-xs text-slate-500">{{ $transaksi->tanggal_transaksi }} · {{ $transaksi->user->name }}</p></div>
-                    @if($transaksi->approved_at)
+                    @php
+                        $historyLabels = [
+                            'sent' => ['title' => 'Dikirim ke Admin', 'color' => 'bg-blue-500'],
+                            'resubmitted' => ['title' => 'Diajukan Ulang ke Admin', 'color' => 'bg-blue-500'],
+                            'updated' => ['title' => 'Akad Diperbaiki Kasir', 'color' => 'bg-amber-500'],
+                            'pending' => ['title' => 'Pending oleh Admin', 'color' => 'bg-amber-500'],
+                            'approved' => ['title' => 'Disetujui Admin', 'color' => 'bg-emerald-500'],
+                            'rejected' => ['title' => 'Ditolak Admin', 'color' => 'bg-rose-500'],
+                        ];
+                    @endphp
+                    @foreach($transaksi->histories->sortBy('created_at') as $history)
+                        @php $meta = $historyLabels[$history->action] ?? ['title' => ucfirst($history->action), 'color' => 'bg-slate-500']; @endphp
+                        <div class="relative">
+                            <span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full {{ $meta['color'] }} border-4 border-slate-900"></span>
+                            <p class="text-sm font-bold text-slate-800">{{ $meta['title'] }} oleh {{ $history->user->name ?? '-' }}</p>
+                            <p class="text-xs text-slate-500">{{ $history->created_at->format('Y-m-d H:i') }} · Status: {{ ucfirst($history->status_approval ?? '-') }}</p>
+                            @if($history->note)
+                            <p class="text-xs text-slate-600 mt-1 bg-slate-50 border border-slate-200 rounded-lg p-2">{{ $history->note }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                    @if($transaksi->histories->isEmpty() && $transaksi->status_approval === 'pending' && $transaksi->catatan_admin)
+                    <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-amber-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Pending oleh Admin</p><p class="text-xs text-slate-500">{{ $transaksi->updated_at->format('Y-m-d H:i') }} · Alasan: {{ $transaksi->catatan_admin }}</p></div>
+                    @endif
+                    @if($transaksi->histories->where('action', 'approved')->isEmpty() && $transaksi->approved_at)
                     <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-emerald-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Disetujui oleh {{ $transaksi->approvedByUser->name ?? '-' }}</p><p class="text-xs text-slate-500">{{ $transaksi->approved_at->format('Y-m-d H:i') }} · {{ $transaksi->no_register_akad }}</p></div>
                     @endif
                     @foreach($transaksi->perpanjangan as $ext)
