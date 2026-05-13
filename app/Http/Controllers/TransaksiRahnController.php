@@ -23,7 +23,7 @@ class TransaksiRahnController extends Controller
         $jatuh_tempo = $request->query('jatuh_tempo');
         $user = auth()->user();
 
-        $transactions = TransaksiRahn::with('nasabah', 'user')
+        $transactions = TransaksiRahn::with('nasabah.cabang', 'user')
             ->when($user->role === 'kasir', function ($q) use ($user) {
                 $q->where(function ($query) use ($user) {
                     $query->where('user_id', $user->id);
@@ -409,7 +409,7 @@ class TransaksiRahnController extends Controller
 
     public function show(TransaksiRahn $transaksi)
     {
-        $transaksi->load('nasabah', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan.user', 'pelunasan', 'lelang', 'angsuran.user', 'histories.user');
+        $transaksi->load('nasabah.cabang', 'user', 'approvedByUser', 'detailTransaksi.barang', 'perpanjangan.user', 'pelunasan', 'lelang.user', 'lelang.approvedByUser', 'lelang.ownerEditedByUser', 'angsuran.user', 'histories.user');
         $noTeleponCs = Setting::getValue('no_telepon_cs', '6281234567890');
         return view('transaksi.show', compact('transaksi', 'noTeleponCs'));
     }
@@ -505,6 +505,13 @@ class TransaksiRahnController extends Controller
 
     public function bayarAngsuran(Request $request, TransaksiRahn $transaksi)
     {
+        $masukMasaLelang = in_array($transaksi->status, ['lelang', 'lelang_pending', 'lelang_aktif', 'lelang_terjual'])
+            || ($transaksi->tanggal_batas_lelang && Carbon::parse($transaksi->tanggal_batas_lelang)->lte(now()));
+
+        if ($masukMasaLelang) {
+            return back()->with('error', 'Bayar angsuran tidak dapat dilakukan. Barang pada transaksi ini sedang lelang atau terlelang.');
+        }
+
         $request->validate([
             'jumlah_bayar' => 'required|numeric|min:1',
             'catatan' => 'nullable|string|max:500',

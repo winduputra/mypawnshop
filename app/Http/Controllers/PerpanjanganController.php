@@ -23,6 +23,13 @@ class PerpanjanganController extends Controller
 
             $today = Carbon::today();
             $jatuhTempoLama = Carbon::parse($transaksi->tanggal_jatuh_tempo);
+            $masukMasaLelang = in_array($transaksi->status, ['lelang', 'lelang_pending', 'lelang_aktif', 'lelang_terjual'])
+                || ($transaksi->tanggal_batas_lelang && Carbon::parse($transaksi->tanggal_batas_lelang)->lte($today));
+
+            if ($masukMasaLelang) {
+                return redirect()->back()->with('error', 'Perpanjangan tidak dapat dilakukan. Barang pada transaksi ini sedang lelang atau terlelang.');
+            }
+
             $selisihHari = $jatuhTempoLama->diffInDays($today, false); // positive = overdue
 
             // ─── CASE 1: Overdue > 7 hari → Tolak (masuk periode lelang) ───

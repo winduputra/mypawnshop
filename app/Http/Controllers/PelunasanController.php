@@ -11,6 +11,13 @@ class PelunasanController extends Controller
 {
     public function store(Request $request, TransaksiRahn $transaksi)
     {
+        $masukMasaLelang = in_array($transaksi->status, ['lelang', 'lelang_pending', 'lelang_aktif', 'lelang_terjual'])
+            || ($transaksi->tanggal_batas_lelang && \Carbon\Carbon::parse($transaksi->tanggal_batas_lelang)->lte(now()));
+
+        if ($masukMasaLelang) {
+            return back()->with('error', 'Pelunasan tidak dapat dilakukan. Barang pada transaksi ini sedang lelang atau terlelang.');
+        }
+
         if (!in_array($transaksi->status, ['aktif', 'diperpanjang'])) {
             return back()->with('error', 'Transaksi tidak dapat dilunasi.');
         }
