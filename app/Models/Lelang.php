@@ -11,13 +11,16 @@ class Lelang extends Model
         'no_lelang', 'transaksi_rahn_id', 'user_id', 'approved_by',
         'tanggal_lelang', 'status_lelang', 'tanggal_terjual',
         'harga_lelang', 'biaya_lelang', 'ijarah',
-        'pembeli', 'telepon_pembeli',
+        'pembeli', 'alamat_pembeli', 'telepon_pembeli',
         'sisa_untuk_nasabah', 'sisa_dana_kembali', 'kerugian', 'sisa_pinjaman',
         'catatan', 'catatan_owner', 'approved_at',
+        'owner_edited_by', 'owner_edited_at', 'owner_edit_count', 'owner_edit_log',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'owner_edited_at' => 'datetime',
+        'owner_edit_log' => 'array',
     ];
 
     public function transaksiRahn()
@@ -33,6 +36,11 @@ class Lelang extends Model
     public function approvedByUser()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function ownerEditedByUser()
+    {
+        return $this->belongsTo(User::class, 'owner_edited_by');
     }
 
     /**
