@@ -16,32 +16,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Admin MyPawnShop',
-            'email' => 'admin@mypawnshop.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
+        $users = [
+            ['name' => 'Admin MyPawnShop', 'email' => 'admin@mypawnshop.com', 'role' => 'admin'],
+            ['name' => 'Owner MyPawnShop', 'email' => 'owner@mypawnshop.com', 'role' => 'owner'],
+            ['name' => 'Superadmin MyPawnShop', 'email' => 'superadmin@mypawnshop.com', 'role' => 'superadmin'],
+            ['name' => 'Kasir MyPawnShop', 'email' => 'kasir@mypawnshop.com', 'role' => 'kasir'],
+        ];
 
-        User::factory()->create([
-            'name' => 'Owner MyPawnShop',
-            'email' => 'owner@mypawnshop.com',
-            'password' => Hash::make('password'),
-            'role' => 'owner',
-        ]);
-
-        User::factory()->create([
-            'name' => 'Superadmin MyPawnShop',
-            'email' => 'superadmin@mypawnshop.com',
-            'password' => Hash::make('password'),
-            'role' => 'superadmin',
-        ]);
-
-        User::factory()->create([
-            'name' => 'Kasir MyPawnShop',
-            'email' => 'kasir@mypawnshop.com',
-            'password' => Hash::make('password'),
-            'role' => 'kasir',
-        ]);
+        foreach ($users as $user) {
+            User::firstOrCreate(
+                ['email' => $user['email']],
+                [
+                    'name' => $user['name'],
+                    'password' => Hash::make('password'),
+                    'role' => $user['role'],
+                ]
+            );
+        }
     }
 }
