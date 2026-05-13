@@ -23,7 +23,7 @@ class LelangController extends Controller
         $belumLelangQuery = TransaksiRahn::whereIn('status', ['aktif', 'diperpanjang'])
             ->where('tanggal_batas_lelang', '<=', now()->toDateString())
             ->doesntHave('lelang')
-            ->with('nasabah', 'detailTransaksi.barang');
+            ->with('nasabah.cabang', 'detailTransaksi.barang');
 
         // Branch isolation
         if ($user->role === 'kasir' && $user->cabang_id) {
@@ -35,7 +35,7 @@ class LelangController extends Controller
             : collect();
 
         // ── 2. Record lelang yang sudah dibuat ──
-        $lelangQuery = Lelang::with('transaksiRahn.nasabah', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser');
+        $lelangQuery = Lelang::with('transaksiRahn.nasabah.cabang', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser', 'ownerEditedByUser');
 
         // Status filter
         if ($statusFilter !== 'semua' && $statusFilter !== 'baru') {
@@ -64,7 +64,7 @@ class LelangController extends Controller
         $user = auth()->user();
 
         // Cek apakah ini transaksi_rahn ID atau lelang ID
-        $lelang = Lelang::with('transaksiRahn.nasabah', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser')
+        $lelang = request()->boolean('transaksi') ? null : Lelang::with('transaksiRahn.nasabah.cabang', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser', 'ownerEditedByUser')
             ->find($id);
 
         if ($lelang) {
@@ -72,7 +72,8 @@ class LelangController extends Controller
         }
 
         // Jika belum ada record lelang, tampilkan form buat baru
-        $transaksi = TransaksiRahn::with('nasabah', 'detailTransaksi.barang')->findOrFail($id);
+        $transaksi = TransaksiRahn::with('nasabah.cabang', 'detailTransaksi.barang')->findOrFail($id);
+
         return view('lelang.show', compact('transaksi'));
     }
 
@@ -81,6 +82,10 @@ class LelangController extends Controller
      */
     public function store(Request $request)
     {
+        if (!in_array(auth()->user()->role, ['admin', 'owner', 'superadmin'])) {
+            abort(403, 'Kasir hanya dapat melihat data lelang.');
+        }
+
         $request->validate([
             'transaksi_rahn_id' => 'required|exists:transaksi_rahn,id',
             'harga_lelang'      => 'required|numeric|min:0',
@@ -94,7 +99,7 @@ class LelangController extends Controller
             $ijarah    = floatval($transaksi->biaya_penitipan);
 
             // Hitung sisa dana kembali preview
-            $totalKewajiban = $transaksi->sisa_pinjaman + $biaya;
+            $totalKewajiban = $transaksi->sisa_pinjaman + $biaya + $ijarah;
             $sisaDana = max(0, $harga - $totalKewajiban);
 
             $lelang = Lelang::create([
@@ -111,6 +116,12 @@ class LelangController extends Controller
             ]);
 
             $transaksi->update(['status' => 'lelang_pending']);
+            $transaksi->histories()->create([
+                'user_id' => Auth::id(),
+                'action' => 'lelang_submitted',
+                'status_approval' => 'lelang_pending',
+                'note' => "Data lelang {$lelang->no_lelang} dibuat dan dikirim ke Owner.",
+            ]);
 
             return redirect()->route('lelang.index', ['status' => 'pending'])
                 ->with('success', 'Data lelang berhasil dikirim ke Owner untuk approval.');
@@ -122,6 +133,10 @@ class LelangController extends Controller
      */
     public function kirimKeOwner($id)
     {
+        if (!in_array(auth()->user()->role, ['admin', 'owner', 'superadmin'])) {
+            abort(403, 'Kasir hanya dapat melihat data lelang.');
+        }
+
         $lelang = Lelang::findOrFail($id);
 
         if (!in_array($lelang->status_lelang, ['draft', 'dibatalkan'])) {
@@ -133,7 +148,15 @@ class LelangController extends Controller
             'catatan_owner' => null,
         ]);
 
-        $lelang->transaksiRahn->update(['status' => 'lelang_pending']);
+        $lelang->transaksiRahn->update([
+            'status' => $lelang->status_lelang === 'aktif' ? 'lelang_aktif' : 'lelang_pending',
+        ]);
+        $lelang->transaksiRahn->histories()->create([
+            'user_id' => Auth::id(),
+            'action' => 'lelang_resubmitted',
+            'status_approval' => 'lelang_pending',
+            'note' => "Lelang {$lelang->no_lelang} dikirim ulang ke Owner.",
+        ]);
 
         return redirect()->route('lelang.index', ['status' => 'pending'])
             ->with('success', 'Lelang berhasil dikirim ulang ke Owner.');
@@ -162,13 +185,19 @@ class LelangController extends Controller
         ]);
 
         $lelang->transaksiRahn->update(['status' => 'lelang_aktif']);
+        $lelang->transaksiRahn->histories()->create([
+            'user_id' => $user->id,
+            'action' => 'lelang_approved',
+            'status_approval' => 'lelang_aktif',
+            'note' => "Lelang {$lelang->no_lelang} disetujui Owner dan aktif.",
+        ]);
 
         return redirect()->route('lelang.index', ['status' => 'aktif'])
             ->with('success', 'Lelang disetujui! Barang sekarang dalam status AKTIF dilelang.');
     }
 
     /**
-     * Owner tolak / minta revisi → status DIBATALKAN, kembali ke Admin
+     * Owner tolak / minta revisi, tanpa mengembalikan edit ke Admin.
      */
     public function reject(Request $request, $id)
     {
@@ -183,18 +212,21 @@ class LelangController extends Controller
         }
 
         $lelang->update([
-            'status_lelang' => 'dibatalkan',
-            'catatan_owner' => $request->catatan_owner ?? 'Silakan revisi harga jual dan biaya admin lelang.',
+            'catatan_owner' => $request->catatan_owner ?? 'Owner meminta revisi data lelang.',
+        ]);
+        $lelang->transaksiRahn->histories()->create([
+            'user_id' => $user->id,
+            'action' => 'lelang_rejected',
+            'status_approval' => 'lelang_pending',
+            'note' => $request->catatan_owner ?? 'Owner meminta revisi data lelang.',
         ]);
 
-        $lelang->transaksiRahn->update(['status' => 'aktif']); // kembali ke status semula
-
         return redirect()->route('lelang.index')
-            ->with('success', 'Lelang ditolak dan dikembalikan ke Admin untuk revisi.');
+            ->with('success', 'Lelang ditolak/revisi oleh Owner. Owner dapat langsung edit data lelang.');
     }
 
     /**
-     * Admin update harga setelah dibatalkan (revisi)
+     * Owner edit data lelang langsung dan tercatat sistem.
      */
     public function update(Request $request, $id)
     {
@@ -203,30 +235,61 @@ class LelangController extends Controller
             'biaya_lelang' => 'required|numeric|min:0',
         ]);
 
+        $user = auth()->user();
+        if (!in_array($user->role, ['owner', 'superadmin'])) {
+            abort(403, 'Hanya Owner/Superadmin yang dapat mengedit data lelang setelah dikirim.');
+        }
+
         $lelang = Lelang::findOrFail($id);
 
-        if ($lelang->status_lelang !== 'dibatalkan') {
-            return back()->with('error', 'Hanya lelang yang dibatalkan yang dapat direvisi.');
+        if (!in_array($lelang->status_lelang, ['pending', 'aktif'])) {
+            return back()->with('error', 'Hanya lelang pending/aktif yang dapat diedit Owner.');
         }
 
         $harga = floatval($request->harga_lelang);
         $biaya = floatval($request->biaya_lelang);
-        $totalKewajiban = $lelang->sisa_pinjaman + $biaya;
+        $ijarah = floatval($lelang->transaksiRahn->biaya_penitipan);
+        $totalKewajiban = $lelang->sisa_pinjaman + $biaya + $ijarah;
         $sisaDana = max(0, $harga - $totalKewajiban);
+        $log = $lelang->owner_edit_log ?? [];
+        $log[] = [
+            'edited_at' => now()->toDateTimeString(),
+            'edited_by' => $user->id,
+            'harga_lelang_lama' => (float) $lelang->harga_lelang,
+            'harga_lelang_baru' => $harga,
+            'biaya_lelang_lama' => (float) $lelang->biaya_lelang,
+            'biaya_lelang_baru' => $biaya,
+            'ijarah_lama' => (float) $lelang->ijarah,
+            'ijarah_baru' => $ijarah,
+        ];
 
         $lelang->update([
             'harga_lelang'       => $harga,
             'biaya_lelang'       => $biaya,
+            'ijarah'             => $ijarah,
             'sisa_untuk_nasabah' => $sisaDana,
             'sisa_dana_kembali'  => $sisaDana,
-            'status_lelang'      => 'pending',
-            'catatan_owner'      => null,
+            'catatan_owner'      => $request->catatan_owner,
+            'owner_edited_by'    => $user->id,
+            'owner_edited_at'    => now(),
+            'owner_edit_count'   => ($lelang->owner_edit_count ?? 0) + 1,
+            'owner_edit_log'     => $log,
+            'status_lelang'      => 'aktif',
+            'approved_by'        => $lelang->approved_by ?: $user->id,
+            'approved_at'        => $lelang->approved_at ?: now(),
+            'tanggal_lelang'     => $lelang->tanggal_lelang ?: now()->toDateString(),
         ]);
 
-        $lelang->transaksiRahn->update(['status' => 'lelang_pending']);
+        $lelang->transaksiRahn->update(['status' => 'lelang_aktif']);
+        $lelang->transaksiRahn->histories()->create([
+            'user_id' => $user->id,
+            'action' => 'lelang_owner_edited',
+            'status_approval' => 'lelang_aktif',
+            'note' => "Owner mengedit dan mengaktifkan lelang {$lelang->no_lelang}.",
+        ]);
 
-        return redirect()->route('lelang.index', ['status' => 'pending'])
-            ->with('success', 'Harga lelang direvisi dan dikirim ulang ke Owner.');
+        return redirect()->route('lelang.index', ['status' => 'aktif'])
+            ->with('success', 'Data lelang berhasil diedit Owner, aktif, dan tercatat oleh sistem.');
     }
 
     /**
@@ -234,6 +297,10 @@ class LelangController extends Controller
      */
     public function bayar(Request $request, $id)
     {
+        if (!in_array(auth()->user()->role, ['kasir', 'admin', 'owner', 'superadmin'])) {
+            abort(403, 'Tidak memiliki akses pembayaran lelang.');
+        }
+
         $lelang = Lelang::with('transaksiRahn')->findOrFail($id);
 
         if ($lelang->status_lelang !== 'aktif') {
@@ -241,8 +308,9 @@ class LelangController extends Controller
         }
 
         $request->validate([
-            'pembeli'          => 'nullable|string',
-            'telepon_pembeli'  => 'nullable|string',
+            'pembeli'          => 'required|string|max:255',
+            'alamat_pembeli'   => 'required|string',
+            'telepon_pembeli'  => 'required|string|max:50',
         ]);
 
         return DB::transaction(function () use ($request, $lelang) {
@@ -250,7 +318,7 @@ class LelangController extends Controller
             $harga     = floatval($lelang->harga_lelang);
             $biaya     = floatval($lelang->biaya_lelang);
 
-            $totalKewajiban = $transaksi->sisa_pinjaman + $biaya;
+            $totalKewajiban = $transaksi->sisa_pinjaman + $biaya + floatval($lelang->ijarah);
 
             $kelebihan = 0;
             $kerugian  = 0;
@@ -267,6 +335,7 @@ class LelangController extends Controller
                 'status_lelang'      => 'terjual',
                 'tanggal_terjual'    => now()->toDateString(),
                 'pembeli'            => $request->pembeli,
+                'alamat_pembeli'     => $request->alamat_pembeli,
                 'telepon_pembeli'    => $request->telepon_pembeli,
                 'sisa_untuk_nasabah' => $kelebihan,
                 'sisa_dana_kembali'  => $kelebihan,
@@ -277,6 +346,12 @@ class LelangController extends Controller
             $transaksi->update([
                 'status'        => 'lelang_terjual',
                 'sisa_pinjaman' => $sisaPinjamanSetelah,
+            ]);
+            $transaksi->histories()->create([
+                'user_id' => Auth::id(),
+                'action' => 'lelang_sold',
+                'status_approval' => 'lelang_terjual',
+                'note' => "Lelang {$lelang->no_lelang} terjual kepada {$request->pembeli}.",
             ]);
 
             return redirect()->route('lelang.hasil', $lelang->id)
@@ -289,27 +364,7 @@ class LelangController extends Controller
      */
     public function batalkan(Request $request, $id)
     {
-        $user = auth()->user();
-        if (!in_array($user->role, ['owner', 'superadmin'])) {
-            abort(403, 'Hanya Owner/Superadmin yang dapat membatalkan lelang.');
-        }
-
-        $lelang = Lelang::findOrFail($id);
-        if ($lelang->status_lelang !== 'aktif') {
-            return back()->with('error', 'Hanya lelang aktif yang dapat dibatalkan.');
-        }
-
-        $lelang->update([
-            'status_lelang' => 'dibatalkan',
-            'catatan_owner' => $request->catatan_owner ?? 'Barang tidak terjual. Silakan revisi harga.',
-            'approved_by'   => null,
-            'approved_at'   => null,
-        ]);
-
-        $lelang->transaksiRahn->update(['status' => 'aktif']);
-
-        return redirect()->route('lelang.index')
-            ->with('success', 'Lelang dibatalkan. Dikembalikan ke Admin untuk revisi harga.');
+        return back()->with('error', 'Pembatalan lelang ke Admin sudah dinonaktifkan. Owner dapat edit data lelang langsung.');
     }
 
     /**
@@ -317,7 +372,7 @@ class LelangController extends Controller
      */
     public function hasil($id)
     {
-        $lelang = Lelang::with('transaksiRahn.nasabah', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser')
+        $lelang = Lelang::with('transaksiRahn.nasabah.cabang', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser')
             ->findOrFail($id);
         return view('lelang.hasil', compact('lelang'));
     }
@@ -327,7 +382,7 @@ class LelangController extends Controller
      */
     public function cetakPdf(Lelang $lelang)
     {
-        $lelang->load('transaksiRahn.nasabah', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser');
+        $lelang->load('transaksiRahn.nasabah.cabang', 'transaksiRahn.detailTransaksi.barang', 'user', 'approvedByUser');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('lelang.pdf', compact('lelang'));
         $pdf->setPaper('A4', 'portrait');
