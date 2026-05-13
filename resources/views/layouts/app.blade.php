@@ -141,10 +141,20 @@
 
             <!-- Main Content -->
             <main class="flex-1 p-8 overflow-y-auto">
-                <header class="flex justify-between items-center mb-8">
+                <header class="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 class="text-xl font-semibold text-slate-800">@yield('header_title', 'Dashboard')</h2>
-                        <p class="text-sm text-slate-500">Selamat datang kembali, {{ Auth::user()->name }}</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold">MyPawnShop</p>
+                        <h2 class="mt-2 text-2xl font-bold text-slate-900">@yield('header_title', 'Dashboard')</h2>
+                        <p class="mt-1 text-sm text-slate-500">Selamat datang kembali.</p>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-green text-sm font-bold uppercase text-brand-gold shadow-sm">
+                            {{ substr(Auth::user()->name, 0, 1) }}
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Login sebagai</p>
+                            <p class="text-base font-bold text-brand-green">{{ Auth::user()->name }}</p>
+                        </div>
                     </div>
                 </header>
 

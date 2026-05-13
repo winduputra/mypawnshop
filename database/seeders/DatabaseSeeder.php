@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Admin MyPawnShop', 'email' => 'admin@mypawnshop.com', 'role' => 'admin'],
             ['name' => 'Owner MyPawnShop', 'email' => 'owner@mypawnshop.com', 'role' => 'owner'],
             ['name' => 'Superadmin MyPawnShop', 'email' => 'superadmin@mypawnshop.com', 'role' => 'superadmin'],
-            ['name' => 'Kasir MyPawnShop', 'email' => 'kasir@mypawnshop.com', 'role' => 'kasir'],
         ];
 
         foreach ($users as $user) {

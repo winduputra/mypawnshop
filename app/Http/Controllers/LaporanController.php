@@ -123,9 +123,11 @@ class LaporanController extends Controller
             ->paginate($perPage, ['*'], 'page_jt')
             ->appends($request->except('page_jt'));
 
-        // Enrich with sisa_hari
+        // Enrich with whole-day status, ignoring current time fraction.
         $laporanJatuhTempo->getCollection()->transform(function ($trx) use ($now) {
-            $trx->sisa_hari = Carbon::parse($trx->tanggal_jatuh_tempo)->diffInDays($now, false);
+            $trx->sisa_hari = (int) Carbon::parse($trx->tanggal_jatuh_tempo)
+                ->startOfDay()
+                ->diffInDays($now->copy()->startOfDay(), false);
             return $trx;
         });
 

@@ -31,7 +31,9 @@ class JatuhTempoExport implements FromCollection, WithHeadings, WithMapping, Wit
     {
         static $no = 0;
         $no++;
-        $sisaHari = Carbon::now()->diffInDays(Carbon::parse($t->tanggal_jatuh_tempo), false);
+        $sisaHari = (int) Carbon::now()
+            ->startOfDay()
+            ->diffInDays(Carbon::parse($t->tanggal_jatuh_tempo)->startOfDay(), false);
         $label = $sisaHari >= 0 ? $sisaHari . ' hari lagi' : abs($sisaHari) . ' hari lewat';
 
         return [
