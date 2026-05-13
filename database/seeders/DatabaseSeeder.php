@@ -24,6 +24,20 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory()->create([
+            'name' => 'Owner MyPawnShop',
+            'email' => 'owner@mypawnshop.com',
+            'password' => Hash::make('password'),
+            'role' => 'owner',
+        ]);
+
+        User::factory()->create([
+            'name' => 'Superadmin MyPawnShop',
+            'email' => 'superadmin@mypawnshop.com',
+            'password' => Hash::make('password'),
+            'role' => 'superadmin',
+        ]);
+
+        User::factory()->create([
             'name' => 'Kasir MyPawnShop',
             'email' => 'kasir@mypawnshop.com',
             'password' => Hash::make('password'),
