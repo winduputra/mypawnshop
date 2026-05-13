@@ -1,6 +1,20 @@
 <x-app-layout>
 @section('header_title', 'Detail Akad Pinjaman')
 @section('content')
+@php
+    $masukMasaLelang = in_array($transaksi->status, ['lelang', 'lelang_pending', 'lelang_aktif', 'lelang_terjual'])
+        || ($transaksi->tanggal_batas_lelang && \Carbon\Carbon::parse($transaksi->tanggal_batas_lelang)->lte(now()));
+    $labelMasaLelang = match ($transaksi->status) {
+        'lelang_terjual' => 'Terjual Lelang',
+        'lelang_aktif' => 'Aktif Lelang',
+        default => 'Sedang dalam proses lelang',
+    };
+    $statusLabels = [
+        'lelang_pending' => 'Sedang dalam proses lelang',
+        'lelang_aktif' => 'Aktif Lelang',
+        'lelang_terjual' => 'Terjual Lelang',
+    ];
+@endphp
 <div class="max-w-6xl mx-auto">
     @if(session('success'))<div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm">{{ session('success') }}</div>@endif
     @if(session('error'))<div class="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm">{{ session('error') }}</div>@endif
@@ -35,7 +49,7 @@
             @if($transaksi->status == 'lunas')
             <a href="{{ route('transaksi.nota-lunas', $transaksi) }}" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10" target="_blank">Cetak Nota Lunas</a>
             @endif
-            @if(in_array($transaksi->status, ['aktif','diperpanjang']))
+            @if(in_array($transaksi->status, ['aktif','diperpanjang']) && !$masukMasaLelang)
             <button onclick="toggleModal('modalAngsuran')" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-amber-400 hover:bg-white/10">Bayar Angsuran</button>
             <button onclick="toggleModal('modalPerpanjang')" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-indigo-400 hover:bg-white/10">Perpanjang</button>
             <button onclick="toggleModal('modalPelunasan')" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-5 py-2 rounded-xl text-sm">Lunasi</button>
@@ -43,6 +57,13 @@
             @endif
         </div>
     </div>
+
+    @if($masukMasaLelang)
+    <div class="mb-6 p-4 rounded-xl border bg-amber-500/10 border-amber-500/20">
+        <p class="text-xs font-semibold uppercase text-amber-500 mb-1">{{ $labelMasaLelang }}</p>
+        <p class="text-sm text-slate-800">Barang pada transaksi ini {{ strtolower($labelMasaLelang) }} karena sudah masuk masa lelang (jatuh tempo +8 hari). Pelunasan, perpanjangan, dan bayar angsuran tidak tersedia.</p>
+    </div>
+    @endif
 
     {{-- Catatan Admin --}}
     @if($transaksi->catatan_admin)
@@ -158,6 +179,7 @@
             {{-- Status Header --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-wrap items-center justify-between gap-4 border-l-4 
                 @if($transaksi->status_approval === 'disetujui' && $transaksi->status === 'aktif') border-sky-500 
+                @elseif(in_array($transaksi->status, ['lelang','lelang_pending','lelang_aktif','lelang_terjual'])) border-rose-500
                 @elseif($transaksi->status === 'lunas') border-emerald-500 
                 @elseif(in_array($transaksi->status_approval, ['pending','menunggu_persetujuan_nasabah'])) border-amber-500 
                 @elseif($transaksi->status_approval === 'ditolak') border-rose-500 
@@ -170,7 +192,7 @@
                     @endphp
                     <h3 class="text-2xl font-bold {{ $apColors[$transaksi->status_approval] ?? 'text-slate-800' }}">{{ $apLabels[$transaksi->status_approval] ?? strtoupper($transaksi->status_approval) }}</h3>
                     @if($transaksi->status !== 'draft' && $transaksi->status !== 'ditolak')
-                    <p class="text-xs text-slate-500 mt-1">Status Transaksi: <span class="font-semibold text-slate-800">{{ strtoupper($transaksi->status) }}</span></p>
+                    <p class="text-xs text-slate-500 mt-1">Status Transaksi: <span class="font-semibold text-slate-800">{{ strtoupper($statusLabels[$transaksi->status] ?? $transaksi->status) }}</span></p>
                     @endif
                 </div>
                 <div class="text-right">
@@ -185,6 +207,9 @@
             {{-- Barang Jaminan --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-4">Barang Jaminan (Marhun)</h3>
+                <div class="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600">
+                    Cabang asal barang: <span class="font-semibold text-slate-800">{{ $transaksi->nasabah->cabang->nama_cabang ?? $transaksi->nasabah->cabang->nama ?? '-' }}</span>
+                </div>
                 @foreach($transaksi->detailTransaksi as $detail)
                 <div class="flex items-center p-4 bg-white rounded-xl border border-slate-200">
                     <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center mr-4">
@@ -217,6 +242,11 @@
             {{-- Timeline --}}
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-base font-semibold text-amber-400 mb-4">Riwayat</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 text-xs">
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><span class="block text-slate-500">Dibuat oleh</span><strong class="text-slate-800">{{ $transaksi->user->name ?? '-' }}</strong></div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><span class="block text-slate-500">Approve akad oleh</span><strong class="text-slate-800">{{ $transaksi->approvedByUser->name ?? '-' }}</strong></div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><span class="block text-slate-500">Input lelang oleh</span><strong class="text-slate-800">{{ $transaksi->lelang->user->name ?? '-' }}</strong></div>
+                </div>
                 <div class="relative pl-8 border-l border-slate-300 space-y-6">
                     <div class="relative"><span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-slate-500 border-4 border-slate-900"></span><p class="text-sm font-bold text-slate-800">Draft Dibuat</p><p class="text-xs text-slate-500">{{ $transaksi->tanggal_transaksi }} · {{ $transaksi->user->name }}</p></div>
                     @php
@@ -230,6 +260,12 @@
                             'customer_rejected' => ['title' => 'Ditolak Nasabah', 'color' => 'bg-rose-500'],
                             'approved' => ['title' => 'Disetujui Admin', 'color' => 'bg-emerald-500'],
                             'rejected' => ['title' => 'Ditolak Admin', 'color' => 'bg-rose-500'],
+                            'lelang_submitted' => ['title' => 'Data Lelang Diajukan', 'color' => 'bg-amber-500'],
+                            'lelang_resubmitted' => ['title' => 'Lelang Dikirim Ulang', 'color' => 'bg-blue-500'],
+                            'lelang_approved' => ['title' => 'Lelang Aktif', 'color' => 'bg-blue-500'],
+                            'lelang_rejected' => ['title' => 'Lelang Revisi Owner', 'color' => 'bg-rose-500'],
+                            'lelang_owner_edited' => ['title' => 'Lelang Diedit Owner', 'color' => 'bg-blue-500'],
+                            'lelang_sold' => ['title' => 'Terjual Lelang', 'color' => 'bg-emerald-500'],
                         ];
                     @endphp
                     @foreach($transaksi->histories->sortBy('created_at') as $history)
@@ -237,7 +273,7 @@
                         <div class="relative">
                             <span class="absolute -left-[41px] top-1 w-5 h-5 rounded-full {{ $meta['color'] }} border-4 border-slate-900"></span>
                             <p class="text-sm font-bold text-slate-800">{{ $meta['title'] }} oleh {{ $history->user->name ?? '-' }}</p>
-                            <p class="text-xs text-slate-500">{{ $history->created_at->format('Y-m-d H:i') }} · Status: {{ ucfirst($history->status_approval ?? '-') }}</p>
+                            <p class="text-xs text-slate-500">{{ $history->created_at->format('Y-m-d H:i') }} · Status: {{ $statusLabels[$history->status_approval] ?? ucfirst($history->status_approval ?? '-') }}</p>
                             @if($history->note)
                             <p class="text-xs text-slate-600 mt-1 bg-slate-50 border border-slate-200 rounded-lg p-2">{{ $history->note }}</p>
                             @endif

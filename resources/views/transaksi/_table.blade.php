@@ -3,6 +3,7 @@
         <tr class="text-xs font-semibold text-slate-500 uppercase bg-white">
             <th class="px-6 py-4">No. Transaksi</th>
             <th class="px-6 py-4">Nasabah</th>
+            <th class="px-6 py-4">Cabang</th>
             <th class="px-6 py-4">Pinjaman</th>
             <th class="px-6 py-4">Jatuh Tempo</th>
             <th class="px-6 py-4">Status</th>
@@ -17,6 +18,7 @@
                 <div class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</div>
                 <div class="text-xs text-slate-500">{{ $trx->nasabah->nik }}</div>
             </td>
+            <td class="px-6 py-4 text-xs text-slate-600">{{ $trx->nasabah->cabang->nama_cabang ?? $trx->nasabah->cabang->nama ?? '-' }}</td>
             <td class="px-6 py-4 text-slate-800">
                 <span class="block">Rp {{ number_format($trx->total_pinjaman, 0, ',', '.') }}</span>
                 <span class="text-xs text-slate-500">Ujrah: {{ number_format($trx->ujrah_per_30hari, 0, ',', '.') }}/30hr</span>
@@ -35,8 +37,9 @@
                 <span class="px-2 py-1 rounded-full text-xs font-medium ml-1
                     @if($trx->status == 'aktif') bg-sky-500/10 text-sky-400 
                     @elseif($trx->status == 'lunas') bg-emerald-500/10 text-emerald-400 
-                    @elseif($trx->status == 'lelang') bg-rose-500/10 text-rose-400
-                    @else bg-indigo-500/10 text-indigo-400 @endif">{{ ucfirst($trx->status) }}</span>
+                    @elseif($trx->status == 'lelang_terjual') bg-emerald-500/10 text-emerald-400
+                    @elseif(in_array($trx->status, ['lelang','lelang_pending','lelang_aktif'])) bg-rose-500/10 text-rose-400
+                    @else bg-indigo-500/10 text-indigo-400 @endif">{{ ['lelang_pending'=>'Proses Lelang','lelang_aktif'=>'Aktif Lelang','lelang_terjual'=>'Terjual Lelang'][$trx->status] ?? ucfirst($trx->status) }}</span>
                 @endif
             </td>
             <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
