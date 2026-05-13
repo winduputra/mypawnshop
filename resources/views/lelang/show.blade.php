@@ -17,6 +17,7 @@
             $isExisting = isset($lelang);
             $trx = $isExisting ? $lelang->transaksiRahn : $transaksi;
             $user = auth()->user();
+            $canInputLelang = in_array($user->role, ['admin','owner','superadmin']);
         @endphp
 
         {{-- Catatan Owner (jika dibatalkan) --}}
@@ -48,6 +49,10 @@
                         <p class="text-xs text-slate-500 mb-1">Nasabah</p>
                         <p class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</p>
                         <p class="text-xs text-slate-400">{{ $trx->nasabah->telepon }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">Cabang Asal Barang</p>
+                        <p class="text-slate-800 font-medium">{{ $trx->nasabah->cabang->nama_cabang ?? $trx->nasabah->cabang->nama ?? '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 mb-1">Barang Jaminan</p>
@@ -85,6 +90,9 @@
                     <div class="flex justify-between"><span class="text-slate-500">Ijarah</span><span class="text-slate-700 font-mono">Rp {{ number_format($lelang->ijarah, 0, ',', '.') }}</span></div>
                     <div class="flex justify-between pt-3 border-t border-slate-200"><span class="text-sm font-medium text-emerald-600">Est. Sisa Dana Kembali</span><span class="text-emerald-600 font-mono font-bold">Rp {{ number_format($lelang->sisa_dana_kembali, 0, ',', '.') }}</span></div>
                     <div class="flex justify-between"><span class="text-sm text-slate-500">Diajukan oleh</span><span class="text-slate-700">{{ $lelang->user->name ?? '-' }}</span></div>
+                    @if($lelang->owner_edit_count)
+                    <div class="flex justify-between"><span class="text-sm text-slate-500">Edit Owner</span><span class="text-slate-700">{{ $lelang->owner_edit_count }}x oleh {{ $lelang->ownerEditedByUser->name ?? '-' }}</span></div>
+                    @endif
                 </div>
                 <div class="flex gap-3">
                     <form action="{{ route('lelang.approve', $lelang->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Setujui lelang ini?')">
@@ -92,6 +100,7 @@
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all">Approve</button>
                     </form>
                     <button onclick="document.getElementById('reject-inline').classList.toggle('hidden')" class="flex-1 border border-red-300 text-red-600 font-semibold py-3 rounded-xl hover:bg-red-50 transition-all">Tolak / Revisi</button>
+                    <button type="button" onclick="document.getElementById('owner-edit-inline').classList.toggle('hidden')" class="flex-1 border border-[#084C35] text-[#084C35] font-semibold py-3 rounded-xl hover:bg-emerald-50 transition-all">Edit</button>
                 </div>
                 <div id="reject-inline" class="hidden mt-4">
                     <form action="{{ route('lelang.reject', $lelang->id) }}" method="POST">
@@ -100,44 +109,38 @@
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-all">Kirim Tolakan</button>
                     </form>
                 </div>
-
-                @elseif($isExisting && $lelang->status_lelang === 'dibatalkan' && in_array($user->role, ['admin','kasir','superadmin']))
-                {{-- Admin Revisi Mode --}}
-                <h3 class="text-lg font-semibold text-slate-800 mb-4">Revisi Harga Lelang</h3>
-                <form action="{{ route('lelang.update', $lelang->id) }}" method="POST" class="space-y-5">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" id="sisa_pinjaman" value="{{ $trx->sisa_pinjaman }}">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Harga Jual Lelang (Rp)</label>
-                        <input type="text" name="harga_lelang" id="harga_lelang" value="{{ number_format($lelang->harga_lelang, 0, '', '') }}" required oninput="calculateLelang()"
-                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-lg font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Admin Lelang (Rp)</label>
-                        <input type="text" name="biaya_lelang" id="biaya_lelang" value="{{ number_format($lelang->biaya_lelang, 0, '', '') }}" required oninput="calculateLelang()"
-                            class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
-                    </div>
-                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-emerald-700">Sisa Dana Kembali</span>
-                            <span id="label_kembali" class="text-emerald-700 font-mono font-bold text-lg">Rp 0</span>
+                <div id="owner-edit-inline" class="hidden mt-4">
+                    <form action="{{ route('lelang.update', $lelang->id) }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" id="sisa_pinjaman" value="{{ $trx->sisa_pinjaman }}">
+                        <input type="hidden" id="ijarah_lelang" value="{{ $trx->biaya_penitipan }}">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Harga Terjual / Harga Jual Lelang (Rp)</label>
+                            <input type="text" name="harga_lelang" id="harga_lelang" value="{{ number_format($lelang->harga_lelang, 0, '', '') }}" required oninput="calculateLelang()" class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-lg font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                         </div>
-                    </div>
-                    <button type="submit" class="w-full bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-3 rounded-xl transition-all">
-                        Kirim Revisi ke Owner
-                    </button>
-                </form>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Admin Lelang (Rp)</label>
+                            <input type="text" name="biaya_lelang" id="biaya_lelang" value="{{ number_format($lelang->biaya_lelang, 0, '', '') }}" required oninput="calculateLelang()" class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                        </div>
+                        <textarea name="catatan_owner" rows="2" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none" placeholder="Catatan edit owner (opsional)">{{ $lelang->catatan_owner }}</textarea>
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <div class="flex justify-between items-center"><span class="text-sm font-medium text-emerald-700">Est. Sisa Dana Kembali</span><span id="label_kembali" class="text-emerald-700 font-mono font-bold text-lg">Rp {{ number_format($lelang->sisa_dana_kembali, 0, ',', '.') }}</span></div>
+                        </div>
+                        <button type="submit" class="w-full bg-[#084C35] hover:bg-[#063d2a] text-[#D6A639] font-semibold py-3 rounded-xl transition-all">Simpan Edit Owner</button>
+                    </form>
+                </div>
 
-                @elseif(!$isExisting)
+                @elseif(!$isExisting && $canInputLelang)
                 {{-- New Lelang Form --}}
                 <h3 class="text-lg font-semibold text-slate-800 mb-4">Input Data Lelang</h3>
                 <form action="{{ route('lelang.store') }}" method="POST" class="space-y-5" onsubmit="return confirm('Kirim data lelang ke Owner untuk approval?')">
                     @csrf
                     <input type="hidden" name="transaksi_rahn_id" value="{{ $trx->id }}">
                     <input type="hidden" id="sisa_pinjaman" value="{{ $trx->sisa_pinjaman }}">
+                    <input type="hidden" id="ijarah_lelang" value="{{ $trx->biaya_penitipan }}">
                     <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Harga Jual Lelang (Rp)</label>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Harga Terjual / Harga Jual Lelang (Rp)</label>
                         <input type="text" name="harga_lelang" id="harga_lelang" required placeholder="0" oninput="calculateLelang()"
                             class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-lg font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                     </div>
@@ -145,6 +148,9 @@
                         <label class="block text-sm font-medium text-slate-600 mb-1">Biaya Admin Lelang (Rp)</label>
                         <input type="text" name="biaya_lelang" id="biaya_lelang" required value="0" oninput="calculateLelang()"
                             class="currency-input w-full border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm text-amber-800">
+                        Tambahan biaya penitipan otomatis dikenakan: <span class="font-mono font-bold">Rp {{ number_format($trx->biaya_penitipan, 0, ',', '.') }}</span> karena transaksi sudah masuk masa lelang.
                     </div>
                     <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
                         <div class="flex justify-between items-center">
@@ -160,22 +166,35 @@
                     </button>
                 </form>
 
-                @elseif($isExisting && in_array($lelang->status_lelang, ['aktif','pending','terjual']))
+                @elseif(!$isExisting && !$canInputLelang)
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Detail Masa Lelang</h3>
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600">
+                    Transaksi sudah masuk masa lelang. Role kasir hanya dapat melihat data; input harga lelang hanya Admin/Owner.
+                </div>
+
+                @elseif($isExisting && in_array($lelang->status_lelang, ['aktif','pending','terjual','dibatalkan']))
                 {{-- Read-only view --}}
                 <h3 class="text-lg font-semibold text-slate-800 mb-4">Detail Lelang</h3>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between"><span class="text-slate-500">Status</span>
-                        @php $sc = ['pending'=>'bg-amber-100 text-amber-700','aktif'=>'bg-blue-100 text-blue-700','terjual'=>'bg-emerald-100 text-emerald-700']; @endphp
+                        @php $sc = ['pending'=>'bg-amber-100 text-amber-700','aktif'=>'bg-blue-100 text-blue-700','terjual'=>'bg-emerald-100 text-emerald-700','dibatalkan'=>'bg-red-100 text-red-700']; @endphp
                         <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $sc[$lelang->status_lelang] ?? '' }}">{{ ucfirst($lelang->status_lelang) }}</span>
                     </div>
                     <div class="flex justify-between"><span class="text-slate-500">Harga Jual Lelang</span><span class="text-slate-800 font-mono font-bold">Rp {{ number_format($lelang->harga_lelang, 0, ',', '.') }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-500">Biaya Admin Lelang</span><span class="text-slate-800 font-mono">Rp {{ number_format($lelang->biaya_lelang, 0, ',', '.') }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-500">Ijarah</span><span class="text-slate-700 font-mono">Rp {{ number_format($lelang->ijarah, 0, ',', '.') }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Input Lelang oleh</span><span class="text-slate-700">{{ $lelang->user->name ?? '-' }}</span></div>
                     @if($lelang->approved_at)
                     <div class="flex justify-between"><span class="text-slate-500">Disetujui oleh</span><span class="text-slate-700">{{ $lelang->approvedByUser->name ?? '-' }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-500">Tanggal Approve</span><span class="text-slate-700">{{ $lelang->approved_at->format('d M Y H:i') }}</span></div>
                     @endif
+                    @if($lelang->owner_edit_count)
+                    <div class="flex justify-between"><span class="text-slate-500">Edit Owner</span><span class="text-slate-700">{{ $lelang->owner_edit_count }}x oleh {{ $lelang->ownerEditedByUser->name ?? '-' }}</span></div>
+                    @endif
                     @if($lelang->status_lelang === 'terjual')
+                    <div class="flex justify-between"><span class="text-slate-500">Pembeli</span><span class="text-slate-700">{{ $lelang->pembeli ?? '-' }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Alamat Pembeli</span><span class="text-slate-700 text-right max-w-[55%]">{{ $lelang->alamat_pembeli ?? '-' }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Nomor Telpon</span><span class="text-slate-700">{{ $lelang->telepon_pembeli ?? '-' }}</span></div>
                     <div class="flex justify-between pt-3 border-t border-slate-200"><span class="text-emerald-600 font-medium">Sisa Dana Kembali</span><span class="text-emerald-600 font-mono font-bold">Rp {{ number_format($lelang->sisa_dana_kembali, 0, ',', '.') }}</span></div>
                     @endif
                 </div>
@@ -194,9 +213,10 @@
         }
         function calculateLelang() {
             var p = parseFloat(document.getElementById('sisa_pinjaman')?.value) || 0;
+            var i = parseFloat(document.getElementById('ijarah_lelang')?.value) || 0;
             var h = parseRupiah(document.getElementById('harga_lelang')?.value);
             var b = parseRupiah(document.getElementById('biaya_lelang')?.value);
-            var sisa = Math.max(0, h - (p + b));
+            var sisa = Math.max(0, h - (p + b + i));
             var el = document.getElementById('label_kembali');
             if(el) el.innerText = formatRupiah(sisa);
         }

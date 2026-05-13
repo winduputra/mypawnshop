@@ -44,6 +44,7 @@
                     <tr class="text-xs font-semibold text-slate-500 uppercase bg-slate-50">
                         <th class="px-6 py-3">No. Transaksi</th>
                         <th class="px-6 py-3">Nasabah</th>
+                        <th class="px-6 py-3">Cabang</th>
                         <th class="px-6 py-3">Barang</th>
                         <th class="px-6 py-3">Pokok Pinjaman</th>
                         <th class="px-6 py-3">Sisa Pokok</th>
@@ -60,6 +61,7 @@
                             <div class="text-slate-800 font-medium">{{ $trx->nasabah->nama }}</div>
                             <div class="text-xs text-slate-400">{{ $trx->nasabah->telepon }}</div>
                         </td>
+                        <td class="px-6 py-4 text-xs text-slate-600">{{ $trx->nasabah->cabang->nama_cabang ?? $trx->nasabah->cabang->nama ?? '-' }}</td>
                         <td class="px-6 py-4">
                             <ul class="text-slate-600 text-xs space-y-0.5">
                                 @foreach($trx->detailTransaksi as $dt)
@@ -72,10 +74,10 @@
                         <td class="px-6 py-4 font-mono text-slate-600">Rp {{ number_format($trx->biaya_penitipan, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 text-rose-500 font-medium text-xs">{{ \Carbon\Carbon::parse($trx->tanggal_batas_lelang)->format('d M Y') }}</td>
                         <td class="px-6 py-4 text-right">
-                            <a href="{{ route('lelang.show', $trx->id) }}"
-                               class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#cf9e50] hover:bg-[#b48842] text-white shadow-sm transition-all">
+                            <a href="{{ route('lelang.show', ['lelang' => $trx->id, 'transaksi' => 1]) }}"
+                               class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold {{ in_array(auth()->user()->role, ['admin','owner','superadmin']) ? 'bg-[#cf9e50] hover:bg-[#b48842] text-white' : 'bg-slate-100 text-slate-600' }} shadow-sm transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                <span>Proses Lelang</span>
+                                <span>{{ in_array(auth()->user()->role, ['admin','owner','superadmin']) ? 'Proses Lelang' : 'Lihat' }}</span>
                             </a>
                         </td>
                     </tr>
@@ -98,6 +100,7 @@
                         <th class="px-6 py-3">ID Lelang</th>
                         <th class="px-6 py-3">No. Transaksi</th>
                         <th class="px-6 py-3">Nasabah</th>
+                        <th class="px-6 py-3">Cabang</th>
                         <th class="px-6 py-3">Pokok Pinjaman</th>
                         <th class="px-6 py-3">Harga Jual</th>
                         <th class="px-6 py-3">Biaya Admin</th>
@@ -113,6 +116,7 @@
                         <td class="px-6 py-4">
                             <div class="text-slate-800 font-medium text-xs">{{ $l->transaksiRahn->nasabah->nama }}</div>
                         </td>
+                        <td class="px-6 py-4 text-xs text-slate-600">{{ $l->transaksiRahn->nasabah->cabang->nama_cabang ?? $l->transaksiRahn->nasabah->cabang->nama ?? '-' }}</td>
                         <td class="px-6 py-4 font-mono text-slate-700 text-xs">Rp {{ number_format($l->sisa_pinjaman, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 font-mono text-slate-800 font-semibold text-xs">Rp {{ number_format($l->harga_lelang, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 font-mono text-slate-600 text-xs">Rp {{ number_format($l->biaya_lelang, 0, ',', '.') }}</td>
@@ -142,19 +146,20 @@
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     Tolak
                                 </button>
+                                <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#084C35] text-[#D6A639] hover:bg-[#063d2a] transition-all" title="Edit">Edit</a>
                                 @endif
 
-                                {{-- Admin: Bayar for aktif --}}
-                                @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['admin','kasir','superadmin']))
+                                {{-- Kasir/Admin/Owner: input penjualan lelang aktif --}}
+                                @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['kasir','admin','owner','superadmin']))
                                 <button onclick="showBayarModal({{ $l->id }}, '{{ $l->no_lelang }}')" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#cf9e50] text-white hover:bg-[#b48842] transition-all">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                    Bayar
+                                    Input Jual
                                 </button>
                                 @endif
 
-                                {{-- Owner: Batalkan for aktif --}}
+                                {{-- Owner: Edit for aktif --}}
                                 @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['owner','superadmin']))
-                                <button onclick="showBatalkanModal({{ $l->id }})" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-all">Batalkan</button>
+                                <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#084C35] text-[#D6A639] hover:bg-[#063d2a] transition-all">Edit</a>
                                 @endif
 
                                 {{-- Terjual: Lihat Nota --}}
@@ -165,11 +170,11 @@
                                 </a>
                                 @endif
 
-                                {{-- Dibatalkan: Revisi (admin) --}}
-                                @if($l->status_lelang === 'dibatalkan' && in_array(auth()->user()->role, ['admin','kasir','superadmin']))
+                                {{-- Dibatalkan lama: lihat saja --}}
+                                @if($l->status_lelang === 'dibatalkan')
                                 <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-all">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    Revisi
+                                    Detail
                                 </a>
                                 @endif
                             </div>
@@ -177,7 +182,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
                                 <p class="text-slate-400">Tidak ada data lelang untuk filter ini.</p>
@@ -216,12 +221,16 @@
             <form id="form-bayar" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label class="block text-sm text-slate-600 mb-1">Nama Pembeli (opsional)</label>
-                    <input type="text" name="pembeli" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                    <label class="block text-sm text-slate-600 mb-1">Nama Pembeli</label>
+                    <input type="text" name="pembeli" required class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm text-slate-600 mb-1">Telepon Pembeli (opsional)</label>
-                    <input type="text" name="telepon_pembeli" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
+                    <label class="block text-sm text-slate-600 mb-1">Alamat Pembeli</label>
+                    <textarea name="alamat_pembeli" rows="2" required class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-600 mb-1">Nomor Telpon Pembeli</label>
+                    <input type="text" name="telepon_pembeli" required class="w-full border border-slate-300 rounded-xl px-4 py-2 text-slate-800 focus:ring-2 focus:ring-[#084C35]/30 focus:outline-none">
                 </div>
                 <div class="flex gap-3">
                     <button type="submit" class="flex-1 bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2.5 rounded-xl transition-all">Konfirmasi Bayar</button>

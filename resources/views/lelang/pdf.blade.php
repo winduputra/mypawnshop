@@ -57,6 +57,10 @@
             <td>: {{ $lelang->transaksiRahn->nasabah->nik ?? '-' }}</td>
         </tr>
         <tr>
+            <td>Cabang Asal Barang</td>
+            <td>: {{ $lelang->transaksiRahn->nasabah->cabang->nama_cabang ?? $lelang->transaksiRahn->nasabah->cabang->nama ?? '-' }}</td>
+        </tr>
+        <tr>
             <td>Tanggal Jatuh Tempo</td>
             <td>: {{ \Carbon\Carbon::parse($lelang->transaksiRahn->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}</td>
         </tr>
@@ -145,6 +149,7 @@
     <div style="margin-top: 15px;">
         <table class="info-table">
             <tr><td>Pembeli</td><td>: {{ $lelang->pembeli }}</td></tr>
+            <tr><td>Alamat Pembeli</td><td>: {{ $lelang->alamat_pembeli ?? '-' }}</td></tr>
             @if($lelang->telepon_pembeli)
             <tr><td>Telepon Pembeli</td><td>: {{ $lelang->telepon_pembeli }}</td></tr>
             @endif

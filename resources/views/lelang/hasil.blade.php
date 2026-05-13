@@ -32,6 +32,10 @@
                     <p class="text-xs text-slate-400">{{ $lelang->transaksiRahn->nasabah->telepon }}</p>
                 </div>
                 <div>
+                    <p class="text-xs text-slate-500 mb-1">Cabang Asal Barang</p>
+                    <p class="text-slate-800 font-semibold text-sm">{{ $lelang->transaksiRahn->nasabah->cabang->nama_cabang ?? $lelang->transaksiRahn->nasabah->cabang->nama ?? '-' }}</p>
+                </div>
+                <div>
                     <p class="text-xs text-slate-500 mb-2">Barang Jaminan (Marhun)</p>
                     <ul class="space-y-1">
                         @foreach($lelang->transaksiRahn->detailTransaksi as $dt)
@@ -74,6 +78,14 @@
                     <div class="flex justify-between">
                         <span class="text-slate-500">Pembeli</span>
                         <span class="text-slate-800">{{ $lelang->pembeli }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Alamat Pembeli</span>
+                        <span class="text-slate-800 text-right max-w-[55%]">{{ $lelang->alamat_pembeli ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Nomor Telpon</span>
+                        <span class="text-slate-800">{{ $lelang->telepon_pembeli ?? '-' }}</span>
                     </div>
                     @endif
                 </div>
