@@ -16,11 +16,15 @@ class CabangController extends Controller
 
     public function create()
     {
+        $this->authorizeCreateCabang();
+
         return view('cabang.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorizeCreateCabang();
+
         $validated = $request->validate([
             'nama_cabang' => 'required|string|max:255',
             'alamat' => 'nullable|string',
@@ -55,5 +59,12 @@ class CabangController extends Controller
         $cabang->delete();
 
         return redirect()->route('cabang.index')->with('success', 'Cabang berhasil dihapus.');
+    }
+
+    private function authorizeCreateCabang(): void
+    {
+        if (auth()->user()->role === 'admin') {
+            abort(403, 'Admin tidak dapat menambah cabang.');
+        }
     }
 }

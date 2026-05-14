@@ -8,6 +8,7 @@
             <h1 class="mt-2 text-2xl font-bold text-slate-900">Data Cabang</h1>
             <p class="mt-1 text-sm text-slate-500">Kelola data cabang MyPawnShop dengan tampilan yang rapi dan mudah dibaca.</p>
         </div>
+        @if(auth()->user()->role !== 'admin')
         <div>
             <a href="{{ route('cabang.create') }}" class="inline-flex items-center space-x-2 rounded-xl bg-brand-green px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-brand-green/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,6 +17,7 @@
                 <span>Tambah Cabang</span>
             </a>
         </div>
+        @endif
     </div>
 
     @if(session('success'))
