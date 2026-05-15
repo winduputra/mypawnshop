@@ -4,10 +4,9 @@
     @section('content')
     <div class="max-w-7xl mx-auto">
 
-        {{-- Cabang Filter (admin/owner/superadmin) --}}
-        @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin']))
         <form method="GET" action="{{ route('laporan.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
             <input type="hidden" name="period" value="{{ $period }}">
+            @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin', 'superuser']))
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs text-slate-500 mb-1 uppercase tracking-widest">Filter Cabang</label>
                 <select name="cabang_id" onchange="this.form.submit()"
@@ -20,8 +19,17 @@
                     @endforeach
                 </select>
             </div>
+            @endif
+            <div>
+                <label class="block text-xs text-slate-500 mb-1 uppercase tracking-widest">Tanggal Mulai</label>
+                <input type="date" name="start_date" value="{{ $startInput }}" class="bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1 uppercase tracking-widest">Tanggal Akhir</label>
+                <input type="date" name="end_date" value="{{ $endInput }}" class="bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 text-sm">
+            </div>
+            <button type="submit" name="period" value="custom" class="bg-[#084C35] text-[#D6A639] font-semibold rounded-xl px-4 py-2.5 text-sm">Terapkan Range</button>
         </form>
-        @endif
 
         @if($selectedCabang)
         <div class="mb-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200">
@@ -163,7 +171,7 @@
         </div>
 
         <!-- Period Tabs -->
-        <div class="mb-8 flex space-x-3">
+        <div class="mb-8 flex flex-wrap gap-3">
             <a href="{{ route('laporan.index', ['period' => 'harian', 'cabang_id' => $filterCabangId]) }}"
                class="px-6 py-3 rounded-xl text-sm font-semibold transition-all {{ $period === 'harian' ? 'bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-white/10' }}">
                 Harian
@@ -176,6 +184,7 @@
                class="px-6 py-3 rounded-xl text-sm font-semibold transition-all {{ $period === 'bulanan' ? 'bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-white/10' }}">
                 Bulanan
             </a>
+            <span class="px-6 py-3 rounded-xl text-sm font-semibold transition-all {{ $period === 'custom' ? 'bg-[#cf9e50] text-white' : 'bg-white border border-slate-200 text-slate-500' }}">Custom Range</span>
         </div>
 
         <p class="text-slate-500 text-sm mb-6">Periode: <span class="text-slate-800 font-semibold">{{ $periodLabel }}</span></p>

@@ -26,12 +26,14 @@ class LaporanController extends Controller
     {
         $user     = Auth::user();
         $period   = $request->get('period', 'harian');
+        $startInput = $request->get('start_date');
+        $endInput = $request->get('end_date');
         $search   = $request->get('search_jt');
         $cabangs  = Cabang::orderBy('nama_cabang')->get();
 
         // For admin: allow selecting a branch filter. For kasir: always use their own branch.
         $filterCabangId = null;
-        if (in_array($user->role, ['admin', 'owner', 'superadmin'])) {
+        if (in_array($user->role, ['admin', 'owner', 'superadmin', 'superuser'])) {
             $filterCabangId = $request->get('cabang_id');
         } elseif ($user->role === 'kasir' && $user->cabang_id) {
             $filterCabangId = $user->cabang_id;
@@ -50,6 +52,11 @@ class LaporanController extends Controller
                 $startDate   = $now->copy()->startOfMonth();
                 $endDate     = $now->copy()->endOfMonth();
                 $periodLabel = 'Bulan ' . $now->translatedFormat('F Y');
+                break;
+            case 'custom':
+                $startDate = $startInput ? Carbon::parse($startInput)->startOfDay() : $now->copy()->startOfDay();
+                $endDate = $endInput ? Carbon::parse($endInput)->endOfDay() : $startDate->copy()->endOfDay();
+                $periodLabel = $startDate->format('d M Y') . ' - ' . $endDate->format('d M Y');
                 break;
             default:
                 $startDate   = $now->copy()->startOfDay();
@@ -143,7 +150,7 @@ class LaporanController extends Controller
             'laporanAdmin', 'laporanUjrah', 'laporanPinjaman', 'laporanAngsuran',
             'laporanBarang', 'totalBarangAktif', 'totalNilaiTaksiran', 'totalNilaiPinjaman',
             'laporanJatuhTempo', 'transaksiPeriod',
-            'cabangs', 'filterCabangId', 'selectedCabang'
+            'cabangs', 'filterCabangId', 'selectedCabang', 'startInput', 'endInput'
         ));
     }
 

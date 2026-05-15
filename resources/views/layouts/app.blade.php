@@ -101,10 +101,10 @@
                         Lelang
                     </a>
 
-                    @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin']))
+                    @if(in_array(auth()->user()->role, ['admin', 'owner', 'superadmin', 'superuser']))
                     <div class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Admin</div>
 
-                    @if(in_array(auth()->user()->role, ['owner', 'superadmin']))
+                    @if(in_array(auth()->user()->role, ['owner', 'superadmin', 'superuser']))
                         <a href="{{ route('cabang.index') }}" class="sidebar-link {{ request()->routeIs('cabang.*') ? 'active' : '' }}">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -127,6 +127,13 @@
                     <a href="{{ route('admin.index') }}" class="sidebar-link {{ request()->routeIs('admin.*') ? 'active' : '' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A8.966 8.966 0 0112 15c2.21 0 4.236.8 5.879 2.129M15 11a3 3 0 10-6 0 3 3 0 006 0zm6 1a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Kelola Admin
+                    </a>
+                    @endif
+
+                    @if(in_array(auth()->user()->role, ['superadmin', 'superuser']))
+                    <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 11-8 0 4 4 0 018 0zm8 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Manajemen User
                     </a>
                     @endif
 

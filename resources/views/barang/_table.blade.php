@@ -10,6 +10,7 @@
         </span>
     </td>
     <td class="px-6 py-4 text-slate-500">{{ $barang->nasabah->nama }}</td>
+    <td class="px-6 py-4 text-slate-500">{{ $barang->nasabah->cabang->nama_cabang ?? '-' }}</td>
     <td class="px-6 py-4 text-slate-800 font-semibold flex flex-col">
         <span class="text-xs text-slate-500">Rp</span> 
         <span>{{ number_format($barang->taksiran, 0, ',', '.') }}</span>
@@ -46,13 +47,13 @@
 </tr>
 @empty
 <tr>
-    <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada data barang jaminan</td>
+    <td colspan="7" class="px-6 py-8 text-center text-slate-500">Belum ada data barang jaminan</td>
 </tr>
 @endforelse
 
 @if($barangs->hasPages())
 <tr>
-    <td colspan="6" class="p-0">
+    <td colspan="7" class="p-0">
         <div class="p-6 border-t border-slate-200">
             {{ $barangs->links() }}
         </div>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\Nasabah;
 use App\Models\FotoBarang;
+use App\Models\Cabang;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +15,7 @@ class BarangController extends Controller
     private function getBaseQuery()
     {
         $user = Auth::user();
-        $query = Barang::with('nasabah', 'fotoBarang');
+        $query = Barang::with('nasabah.cabang', 'fotoBarang');
         if ($user->role === 'kasir' && $user->cabang_id) {
             $query->whereHas('nasabah', fn($q) => $q->where('cabang_id', $user->cabang_id));
         }
@@ -33,14 +34,19 @@ class BarangController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $cabangId = $request->query('cabang_id');
 
         $barangs = $this->getBaseQuery()
+            ->when($cabangId && in_array(Auth::user()->role, ['admin', 'owner', 'superadmin', 'superuser']), function ($query) use ($cabangId) {
+                $query->whereHas('nasabah', fn($q) => $q->where('cabang_id', $cabangId));
+            })
             ->when($search, function ($query, $search) {
-                return $query->where('nama_barang', 'like', "%{$search}%")
-                             ->orWhere('taksiran', 'like', "%{$search}%")
-                             ->orWhereHas('nasabah', function ($q) use ($search) {
-                                 $q->where('nama', 'like', "%{$search}%");
-                             });
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', "%{$search}%")
+                        ->orWhere('taksiran', 'like', "%{$search}%")
+                        ->orWhereHas('nasabah', fn($n) => $n->where('nama', 'like', "%{$search}%"))
+                        ->orWhereHas('nasabah.cabang', fn($c) => $c->where('nama_cabang', 'like', "%{$search}%"));
+                });
             })
             ->latest()
             ->paginate(10)
@@ -50,7 +56,8 @@ class BarangController extends Controller
             return view('barang._table', compact('barangs'))->render();
         }
 
-        return view('barang.index', compact('barangs'));
+        $cabangs = Cabang::orderBy('nama_cabang')->get();
+        return view('barang.index', compact('barangs', 'cabangs', 'cabangId'));
     }
 
     public function create()

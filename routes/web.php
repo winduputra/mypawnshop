@@ -11,6 +11,7 @@ use App\Http\Controllers\LelangController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Middleware\AdminMiddleware;
 
 Route::get('/', function () {
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('pengaturan', [SettingController::class, 'index'])->name('pengaturan.index');
         Route::put('pengaturan', [SettingController::class, 'update'])->name('pengaturan.update');
         Route::resource('admin', \App\Http\Controllers\AdminController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('users', UserManagementController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('kasir', KasirController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
 
