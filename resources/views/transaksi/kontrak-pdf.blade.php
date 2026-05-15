@@ -132,7 +132,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>MyPawnShop</h1>
+        <h1>Harmans Gadai Syariah</h1>
         <h2>SURAT KONTRAK GADAI (RAHN)</h2>
         <p>Jl. Contoh Alamat No. 123, Kota, Indonesia | Telp: (021) 123-4567</p>
     </div>
@@ -147,7 +147,7 @@
     <div class="section-title">PIHAK PERTAMA (Penerima Gadai)</div>
     <div class="party-info">
         <table>
-            <tr><td>Nama</td><td>: MyPawnShop</td></tr>
+            <tr><td>Nama</td><td>: Harmans Gadai Syariah</td></tr>
             <tr><td>Diwakili oleh</td><td>: {{ $transaksi->user->name }}</td></tr>
             <tr><td>Jabatan</td><td>: Kasir</td></tr>
         </table>
@@ -235,7 +235,7 @@
                     <p style="font-size: 10px; color: #888;">(Penerima Gadai)</p>
                     <div class="sign-line"></div>
                     <p class="sign-name">{{ $transaksi->user->name }}</p>
-                    <p style="font-size: 10px; color: #888;">Kasir MyPawnShop</p>
+                    <p style="font-size: 10px; color: #888;">Kasir Harmans Gadai Syariah</p>
                 </td>
                 <td>
                     <p>PIHAK KEDUA</p>
@@ -249,7 +249,7 @@
     </div>
 
     <div class="footer">
-        <p>Dokumen ini dibuat secara elektronik oleh sistem MyPawnShop dan sah tanpa memerlukan stempel basah.</p>
+        <p>Dokumen ini dibuat secara elektronik oleh sistem Harmans Gadai Syariah dan sah tanpa memerlukan stempel basah.</p>
         <p>Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB</p>
     </div>
 </body>

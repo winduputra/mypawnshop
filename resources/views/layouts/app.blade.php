@@ -159,7 +159,7 @@
             <main class="flex-1 p-8 overflow-y-auto">
                 <header class="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold">MyPawnShop</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold">Harmans Gadai Syariah</p>
                         <h2 class="mt-2 text-2xl font-bold text-slate-900">@yield('header_title', 'Dashboard')</h2>
                         <p class="mt-1 text-sm text-slate-500">Selamat datang kembali.</p>
                     </div>

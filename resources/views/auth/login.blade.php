@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-8 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.25em] text-brand-gold">Harmans Gadai Syariah</p>
-        <h1 class="mt-3 text-2xl font-bold text-white">Masuk ke MyPawnShop</h1>
+        <h1 class="mt-3 text-2xl font-bold text-white">Masuk ke Harmans Gadai Syariah</h1>
         <p class="mt-2 text-sm text-slate-300">Gunakan akun terdaftar untuk mengelola layanan gadai.</p>
     </div>
 

@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>MyPawnShop</h1>
+        <h1>Harmans Gadai Syariah</h1>
         <h2>NOTA PELUNASAN GADAI</h2>
         <p>Jl. Contoh Alamat No. 123, Kota, Indonesia | Telp: (021) 123-4567</p>
     </div>

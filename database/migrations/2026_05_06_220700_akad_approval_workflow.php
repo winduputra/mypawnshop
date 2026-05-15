@@ -40,7 +40,7 @@ return new class extends Migration
 
         // 5. Seed owner user
         DB::table('users')->insert([
-            'name' => 'Owner MyPawnShop',
+            'name' => "Owner Harmans Gadai Syariah",
             'email' => 'owner@mypawnshop.com',
             'password' => bcrypt('password'),
             'role' => 'owner',

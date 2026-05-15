@@ -1,5 +1,5 @@
 /**
- * MyPawnShop - Global Currency Formatter
+ * Harmans Gadai Syariah - Global Currency Formatter
  * Auto-formats inputs with class .currency-input to display "Rp 10.000"
  * Raw numeric value stored in sibling hidden input with same name
  */

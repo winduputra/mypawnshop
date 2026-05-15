@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => 'Admin MyPawnShop', 'email' => 'admin@mypawnshop.com', 'role' => 'admin'],
-            ['name' => 'Owner MyPawnShop', 'email' => 'owner@mypawnshop.com', 'role' => 'owner'],
-            ['name' => 'Superadmin MyPawnShop', 'email' => 'superadmin@mypawnshop.com', 'role' => 'superadmin'],
+            ['name' => "Admin Harmans Gadai Syariah", 'email' => 'admin@mypawnshop.com', 'role' => 'admin'],
+            ['name' => "Owner Harmans Gadai Syariah", 'email' => 'owner@mypawnshop.com', 'role' => 'owner'],
+            ['name' => "Superadmin Harmans Gadai Syariah", 'email' => 'superadmin@mypawnshop.com', 'role' => 'superadmin'],
         ];
 
         foreach ($users as $user) {

@@ -6,7 +6,7 @@
         <div>
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold">Manajemen Cabang</p>
             <h1 class="mt-2 text-2xl font-bold text-slate-900">Data Cabang</h1>
-            <p class="mt-1 text-sm text-slate-500">Kelola data cabang MyPawnShop dengan tampilan yang rapi dan mudah dibaca.</p>
+            <p class="mt-1 text-sm text-slate-500">Kelola data cabang Harmans Gadai Syariah dengan tampilan yang rapi dan mudah dibaca.</p>
         </div>
         @if(auth()->user()->role !== 'admin')
         <div>
