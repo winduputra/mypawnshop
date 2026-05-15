@@ -123,6 +123,13 @@
                         Laporan
                     </a>
 
+                    @if(in_array(auth()->user()->role, ['owner', 'superadmin']))
+                    <a href="{{ route('admin.index') }}" class="sidebar-link {{ request()->routeIs('admin.*') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A8.966 8.966 0 0112 15c2.21 0 4.236.8 5.879 2.129M15 11a3 3 0 10-6 0 3 3 0 006 0zm6 1a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Kelola Admin
+                    </a>
+                    @endif
+
                     <a href="{{ route('kasir.index') }}" class="sidebar-link {{ request()->routeIs('kasir.*') ? 'active' : '' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                         Kelola Kasir

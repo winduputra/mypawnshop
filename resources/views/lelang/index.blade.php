@@ -149,8 +149,8 @@
                                 <a href="{{ route('lelang.show', $l->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#084C35] text-[#D6A639] hover:bg-[#063d2a] transition-all" title="Edit">Edit</a>
                                 @endif
 
-                                {{-- Kasir/Admin/Owner: input penjualan lelang aktif --}}
-                                @if($l->status_lelang === 'aktif' && in_array(auth()->user()->role, ['kasir','admin','owner','superadmin']))
+                                {{-- Kasir: input penjualan lelang aktif --}}
+                                @if($l->status_lelang === 'aktif' && auth()->user()->role === 'kasir')
                                 <button onclick="showBayarModal({{ $l->id }}, '{{ $l->no_lelang }}')" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#cf9e50] text-white hover:bg-[#b48842] transition-all">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     Input Jual

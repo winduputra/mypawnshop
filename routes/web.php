@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('cabang', \App\Http\Controllers\CabangController::class);
         Route::get('pengaturan', [SettingController::class, 'index'])->name('pengaturan.index');
         Route::put('pengaturan', [SettingController::class, 'update'])->name('pengaturan.update');
+        Route::resource('admin', \App\Http\Controllers\AdminController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('kasir', KasirController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
 

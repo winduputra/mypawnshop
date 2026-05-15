@@ -293,12 +293,12 @@ class LelangController extends Controller
     }
 
     /**
-     * Admin klik BAYAR → status TERJUAL + perhitungan final
+     * Kasir klik BAYAR → status TERJUAL + perhitungan final
      */
     public function bayar(Request $request, $id)
     {
-        if (!in_array(auth()->user()->role, ['kasir', 'admin', 'owner', 'superadmin'])) {
-            abort(403, 'Tidak memiliki akses pembayaran lelang.');
+        if (auth()->user()->role !== 'kasir') {
+            abort(403, 'Hanya kasir yang dapat mencatat penjualan lelang.');
         }
 
         $lelang = Lelang::with('transaksiRahn')->findOrFail($id);
