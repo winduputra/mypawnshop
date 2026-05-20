@@ -485,7 +485,7 @@ class TransaksiRahnController extends Controller
             return back()->with('error', 'Kontrak hanya bisa dicetak setelah akad disetujui.');
         }
 
-        $transaksi->load('nasabah', 'user', 'detailTransaksi.barang');
+        $transaksi->load('nasabah.cabang', 'user', 'detailTransaksi.barang');
         
         $pdf = Pdf::loadView('transaksi.kontrak-pdf', compact('transaksi'));
         $pdf->setPaper('A4', 'portrait');
