@@ -61,9 +61,8 @@
         .signature { width: 100%; border-collapse: collapse; margin: 4px auto 0; }
         .signature td { width: 50%; vertical-align: top; padding: 0; word-wrap: break-word; }
         .signature-right { text-align: left; }
-        .signature-space { height: 58px; }
-        .signature-line { display: inline-block; min-width: 140px; border-top: 1px dotted #000; }
-        .signature-name { margin-top: 4px; font-weight: bold; }
+        .signature-space { height: 82px; }
+        .signature-line { display: inline-block; min-width: 140px; font-weight: bold; text-decoration: underline; }
         .footer { margin-top: 18px; text-align: center; font-size: 8.5px; }
     </style>
 </head>
@@ -168,16 +167,14 @@
                 <td>
                     <div>Nasabah Peminjam,</div>
                     <div class="signature-space"></div>
-                    <div class="signature-line"></div>
-                    <div class="signature-name">{{ $nasabah->nama ?? '-' }}</div>
+                    <div class="signature-line">{{ $nasabah->nama ?? '-' }}</div>
                 </td>
                 <td class="signature-right">
                     <div>Hormat kami,</div>
                     <div>HARMANS GADAI SYARIAH</div>
                     <div>Penerima,</div>
                     <div class="signature-space"></div>
-                    <div class="signature-line"></div>
-                    <div class="signature-name">{{ $angsuran->user->name ?? $transaksi->user->name ?? '-' }}</div>
+                    <div class="signature-line">{{ $angsuran->user->name ?? $transaksi->user->name ?? '-' }}</div>
                 </td>
             </tr>
         </table>

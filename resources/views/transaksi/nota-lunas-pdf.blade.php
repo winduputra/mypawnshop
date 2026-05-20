@@ -1,126 +1,154 @@
+@php
+    $logoPath = public_path('images/logo.jpeg');
+    $logoExists = file_exists($logoPath);
+    $nasabah = $transaksi->nasabah;
+    $pelunasan = $transaksi->pelunasan;
+    $nomorNota = 'LNS-' . $transaksi->no_transaksi;
+    $tanggalPelunasan = $pelunasan?->tanggal_pelunasan
+        ? \Carbon\Carbon::parse($pelunasan->tanggal_pelunasan)->translatedFormat('d F Y')
+        : now()->translatedFormat('d F Y');
+    $cabang = $nasabah->cabang->nama_cabang ?? '-';
+    $nomorAkad = $transaksi->no_register_akad ?? $transaksi->no_transaksi;
+    $sisaPokok = $pelunasan->total_pinjaman ?? $transaksi->sisa_pinjaman ?? 0;
+    $sisaUjrah = $pelunasan->total_ujrah ?? 0;
+    $biayaLain = 0;
+    $totalPelunasan = $pelunasan->total_bayar ?? ($sisaPokok + $sisaUjrah + $biayaLain);
+    $petugas = $pelunasan->user->name ?? $transaksi->user->name ?? '-';
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Nota Lunas - {{ $transaksi->no_transaksi }}</title>
+    <title>Nota Pelunasan - {{ $nomorNota }}</title>
     <style>
+        @page { margin: 16mm 24mm 18mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; line-height: 1.6; color: #1a1a1a; padding: 30px 40px; }
-        .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 20px; }
-        .header h1 { font-size: 18px; font-weight: bold; letter-spacing: 2px; margin-bottom: 3px; }
-        .header h2 { font-size: 14px; font-weight: bold; margin-bottom: 3px; color: #16a34a; }
-        .header p { font-size: 10px; color: #555; }
-        .section-title { font-weight: bold; font-size: 12px; margin: 15px 0 8px; padding: 5px 10px; background: #f0f0f0; border-left: 4px solid #16a34a; }
-        .info table { width: 100%; margin-left: 20px; }
-        .info td { padding: 2px 5px; vertical-align: top; }
-        .info td:first-child { width: 160px; font-weight: bold; }
-        .lunas-badge { text-align: center; margin: 20px 0; padding: 15px; border: 3px solid #16a34a; border-radius: 10px; background: #f0fdf4; }
-        .lunas-badge h2 { font-size: 24px; color: #16a34a; }
-        table.items { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        table.items th, table.items td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 10px; }
-        table.items th { background: #f5f5f5; font-weight: bold; text-transform: uppercase; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; line-height: 1.35; color: #000; background: #fff; }
+        .receipt { width: 90%; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 8px; }
+        .logo { display: block; width: 190px; height: auto; margin: 0 auto 6px; }
+        .brand-fallback { font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+        .title { font-size: 13px; font-weight: bold; text-transform: uppercase; }
+        .dotted { border-top: 1px dashed #000; height: 1px; margin: 10px 0; }
+        .solid-line { border-top: 1px solid #000; height: 1px; margin: 12px 0; }
+        .items, .signature { table-layout: fixed; }
+        .meta { width: 360px; border-collapse: collapse; margin: 0 auto 8px; padding-left: 38px; table-layout: auto; }
+        .meta td { padding: 1px 0; vertical-align: top; }
+        .meta-label { width: 86px; }
+        .meta-sep { width: 10px; text-align: center; }
+        .section-title { font-size: 11px; font-weight: normal; margin: 10px 0 5px; }
+        .info { width: 360px; border-collapse: collapse; table-layout: auto; }
+        .info td { padding: 2px 0; vertical-align: top; word-wrap: break-word; }
+        .info-label { width: 126px; }
+        .info-sep { width: 10px; text-align: center; }
+        .items { width: 100%; border-collapse: collapse; margin: 12px auto 0; }
+        .items th, .items td { border: 1px solid #000; padding: 5px 6px; word-wrap: break-word; }
+        .items th { font-size: 10.5px; font-weight: normal; text-align: left; }
+        .items th:first-child, .items td:first-child { width: 58%; }
+        .items th:last-child, .items td:last-child { width: 42%; }
         .right { text-align: right; }
-        .total-row { font-weight: bold; background: #f5f5f5; }
-        .footer { margin-top: 30px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
-        .signature-section table { width: 100%; margin-top: 30px; }
-        .signature-section td { width: 50%; text-align: center; padding: 10px; vertical-align: top; }
-        .sign-line { border-bottom: 1px solid #333; margin: 50px auto 5px; width: 160px; }
-        .sign-name { font-weight: bold; font-size: 11px; }
+        .bold { font-weight: bold; }
+        .check-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        .check-table td { padding: 1px 0; vertical-align: middle; }
+        .check-box { width: 14px; height: 14px; border: 1px solid #000; text-align: center; font-size: 9px; line-height: 12px; padding: 0; }
+        .check-spacer { width: 8px; }
+        .check-label { padding-left: 2px; }
+        .signature { width: 100%; border-collapse: collapse; margin: 14px auto 0; }
+        .signature td { width: 50%; vertical-align: top; padding: 0 12px 0 0; word-wrap: break-word; }
+        .signature-right { text-align: left; }
+        .signature-heading { height: 44px; }
+        .signature-space { height: 92px; }
+        .signature-line { display: inline-block; width: 190px; font-weight: bold; text-decoration: underline; }
+        .note { margin-top: 10px; font-size: 9px; }
+        .footer { margin-top: 12px; text-align: center; font-size: 8.5px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Harmans Gadai Syariah</h1>
-        <h2>NOTA PELUNASAN GADAI</h2>
-        <p>Jl. Contoh Alamat No. 123, Kota, Indonesia | Telp: (021) 123-4567</p>
-    </div>
+    <div class="receipt">
+        <div class="header">
+            @if($logoExists)
+                <img class="logo" src="{{ $logoPath }}" alt="Harmans Gadai Syariah">
+            @else
+                <div class="brand-fallback">HARMANS GADAI SYARIAH</div>
+            @endif
+            <div class="title">NOTA PELUNASAN - PEMBIAYAAN RAHN</div>
+        </div>
 
-    <div class="lunas-badge">
-        <h2>✓ LUNAS</h2>
-        <p style="font-size: 12px; color: #15803d;">Seluruh pinjaman telah dilunasi</p>
-    </div>
-
-    <div class="section-title">DATA TRANSAKSI</div>
-    <div class="info">
-        <table>
-            <tr><td>No. Kontrak</td><td>: {{ $transaksi->no_transaksi }}</td></tr>
-            <tr><td>Tanggal Transaksi</td><td>: {{ $transaksi->tanggal_transaksi }}</td></tr>
-            <tr><td>Tanggal Pelunasan</td><td>: {{ $transaksi->pelunasan->tanggal_pelunasan ?? '-' }}</td></tr>
-        </table>
-    </div>
-
-    <div class="section-title">DATA NASABAH</div>
-    <div class="info">
-        <table>
-            <tr><td>Nama</td><td>: {{ $transaksi->nasabah->nama }}</td></tr>
-            <tr><td>NIK</td><td>: {{ $transaksi->nasabah->nik }}</td></tr>
-            <tr><td>Telepon</td><td>: {{ $transaksi->nasabah->telepon }}</td></tr>
-        </table>
-    </div>
-
-    <div class="section-title">BARANG JAMINAN</div>
-    <table class="items">
-        <thead>
-            <tr><th>No</th><th>Nama Barang</th><th>Kategori</th><th class="right">Taksiran</th><th class="right">Pinjaman</th></tr>
-        </thead>
-        <tbody>
-            @foreach($transaksi->detailTransaksi as $i => $d)
-            <tr>
-                <td>{{ $i + 1 }}</td>
-                <td>{{ $d->barang->nama_barang }}</td>
-                <td style="text-transform: capitalize;">{{ $d->barang->kategori }}</td>
-                <td class="right">{{ number_format($d->taksiran_item, 0, ',', '.') }}</td>
-                <td class="right">{{ number_format($d->pinjaman_item, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
-            <tr class="total-row">
-                <td colspan="3" class="right">Total</td>
-                <td class="right">{{ number_format($transaksi->total_taksiran, 0, ',', '.') }}</td>
-                <td class="right">{{ number_format($transaksi->total_pinjaman, 0, ',', '.') }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div class="section-title">RINCIAN PEMBAYARAN</div>
-    <div class="info">
-        <table>
-            <tr><td>Total Pinjaman Pokok</td><td>: Rp {{ number_format($transaksi->total_pinjaman, 0, ',', '.') }}</td></tr>
-            <tr><td>Biaya Admin</td><td>: Rp {{ number_format($transaksi->biaya_admin, 0, ',', '.') }}</td></tr>
-            <tr><td>Biaya Penitipan</td><td>: Rp {{ number_format($transaksi->biaya_penitipan, 0, ',', '.') }}</td></tr>
-            <tr><td>Metode Pembayaran Biaya</td><td>: {{ ['bayar_dimuka' => 'Dibayar di Awal', 'potong_pinjaman' => 'Dipotong dari Pinjaman', 'bayar_pelunasan' => 'Dibayar Saat Pelunasan'][$transaksi->metode_pembayaran] ?? '-' }}</td></tr>
+        <table class="meta">
+            <tr><td class="meta-label">Nomor Nota</td><td class="meta-sep">:</td><td>{{ $nomorNota }}</td></tr>
+            <tr><td class="meta-label">Tanggal</td><td class="meta-sep">:</td><td>{{ $tanggalPelunasan }}</td></tr>
+            <tr><td class="meta-label">Cabang</td><td class="meta-sep">:</td><td>{{ $cabang }}</td></tr>
         </table>
 
-        @if($transaksi->angsuran->count() > 0)
-        <br>
-        <p style="font-weight: bold; margin-bottom: 5px;">Riwayat Angsuran:</p>
+        <div class="dotted"></div>
+
+        <div class="section-title">Data Nasabah</div>
+        <table class="info">
+            <tr><td class="info-label">Nama Nasabah</td><td class="info-sep">:</td><td>{{ $nasabah->nama ?? '-' }}</td></tr>
+            <tr><td class="info-label">Nomor Akad</td><td class="info-sep">:</td><td>{{ $nomorAkad }}</td></tr>
+            <tr><td class="info-label">Nomor HP</td><td class="info-sep">:</td><td>{{ $nasabah->telepon ?? '-' }}</td></tr>
+        </table>
+
+        <div class="solid-line"></div>
+
+        <div class="section-title">Rincian Pelunasan</div>
         <table class="items">
-            <thead><tr><th>#</th><th>Tanggal</th><th class="right">Dibayar</th><th class="right">Sisa</th></tr></thead>
+            <thead>
+                <tr><th>Uraian</th><th>Jumlah (Rp)</th></tr>
+            </thead>
             <tbody>
-                @foreach($transaksi->angsuran as $i => $a)
-                <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>{{ $a->tanggal_bayar }}</td>
-                    <td class="right">{{ number_format($a->jumlah_bayar, 0, ',', '.') }}</td>
-                    <td class="right">{{ number_format($a->sisa_pinjaman, 0, ',', '.') }}</td>
-                </tr>
-                @endforeach
+                <tr><td>Sisa Pokok Pinjaman (Qard)</td><td class="right">{{ number_format($sisaPokok, 0, ',', '.') }}</td></tr>
+                <tr><td>Sisa Biaya Penitipan (Ujrah)</td><td class="right">{{ number_format($sisaUjrah, 0, ',', '.') }}</td></tr>
+                <tr><td>Biaya Lain (Bila ada)</td><td class="right">{{ number_format($biayaLain, 0, ',', '.') }}</td></tr>
+                <tr><td>Total Pelunasan</td><td class="right bold">{{ number_format($totalPelunasan, 0, ',', '.') }}</td></tr>
             </tbody>
         </table>
-        @endif
-    </div>
 
-    <div class="signature-section">
-        <table>
+        <div class="dotted"></div>
+
+        <div>Status :</div>
+        <table class="check-table">
+            <tr><td class="check-box">x</td><td class="check-spacer"></td><td class="check-label bold">LUNAS SELURUHNYA</td></tr>
+        </table>
+
+        <div class="dotted"></div>
+
+        <div>Barang jaminan :</div>
+        <table class="check-table">
+            <tr><td class="check-box"></td><td class="check-spacer"></td><td class="check-label">Telah dikembalikan kepada nasabah pada tanggal ................................</td></tr>
+            <tr><td class="check-box"></td><td class="check-spacer"></td><td class="check-label">Belum diambil nasabah, wajib diambil paling lambat ................................</td></tr>
+        </table>
+
+        <table class="signature">
             <tr>
-                <td><p>Kasir</p><div class="sign-line"></div><p class="sign-name">{{ $transaksi->user->name }}</p></td>
-                <td><p>Nasabah</p><div class="sign-line"></div><p class="sign-name">{{ $transaksi->nasabah->nama }}</p></td>
+                <td>
+                    <div class="signature-heading">Nasabah Peminjam,</div>
+                    <div class="signature-space"></div>
+                    <div class="signature-line">{{ $nasabah->nama ?? '-' }}</div>
+                </td>
+                <td class="signature-right">
+                    <div class="signature-heading">
+                        Hormat kami,<br>
+                        HARMANS GADAI SYARIAH<br>
+                        Penerima,
+                    </div>
+                    <div class="signature-space"></div>
+                    <div class="signature-line">{{ $petugas }}</div>
+                </td>
             </tr>
         </table>
-    </div>
 
-    <div class="footer">
-        <p>Barang jaminan dapat diambil kembali setelah menunjukkan nota pelunasan ini.</p>
-        <p>Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB</p>
+        <div class="solid-line"></div>
+
+        <div class="note">
+            Keterangan lebih lanjut :<br>
+            Barang jaminan telah dikembalikan dalam kondisi sama dengan saat diterima. Tidak ada kewajiban tersisa.<br>
+            Akad dinyatakan selesai.
+        </div>
+
+        <div class="dotted"></div>
+
+        <div class="footer">Nota ini sebagai bukti sah pelunasan dan pengembalian barang.</div>
     </div>
 </body>
 </html>
