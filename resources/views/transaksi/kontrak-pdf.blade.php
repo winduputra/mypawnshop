@@ -100,7 +100,12 @@
         .signature { width: 100%; border-collapse: collapse; margin-top: 18px; }
         .signature td { width: 50%; vertical-align: top; padding-right: 18px; }
         .sign-space { height: 72px; }
-        .sign-line { display: inline-block; min-width: 190px; border-bottom: 1px dotted #000; }
+        .sign-space-left { height: 94px; }
+        .materai-text { margin-top: 34px; }
+        .materai-space { height: 38px; }
+        .sign-line { display: inline-block; min-width: 190px; }
+        .sign-name { font-weight: bold; text-decoration: underline; }
+        .sign-dotted { border-bottom: 1px dotted #000; }
         .witness { margin-top: 18px; }
     </style>
 </head>
@@ -271,14 +276,14 @@
         <tr>
             <td>
                 <div>Pihak Pertama (Peminjam),</div>
-                <div class="sign-space"></div>
-                <div class="sign-line">{{ $nasabah->nama ?? '-' }}</div>
+                <div class="sign-space-left"></div>
+                <div class="sign-line sign-name">{{ $nasabah->nama ?? '-' }}</div>
             </td>
             <td>
                 <div>Pihak Kedua (Penerima Gadai),</div>
-                <div style="margin-top: 16px;">Materai Rp10.000</div>
-                <div class="sign-space" style="height: 56px;"></div>
-                <div class="sign-line">{{ $petugas }}</div>
+                <div class="materai-text">Materai Rp10.000</div>
+                <div class="materai-space"></div>
+                <div class="sign-line sign-name">{{ $petugas }}</div>
             </td>
         </tr>
     </table>
@@ -288,12 +293,12 @@
             <td>
                 <div>Saksi 1,</div>
                 <div class="sign-space" style="height: 62px;"></div>
-                <div class="sign-line"></div>
+                <div class="sign-line sign-dotted"></div>
             </td>
             <td>
                 <div>Saksi 2,</div>
                 <div class="sign-space" style="height: 62px;"></div>
-                <div class="sign-line"></div>
+                <div class="sign-line sign-dotted"></div>
             </td>
         </tr>
     </table>
