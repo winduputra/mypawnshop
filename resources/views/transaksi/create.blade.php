@@ -47,7 +47,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Tanggal Transaksi</label>
-                            <input type="date" name="tanggal_transaksi" value="{{ date('Y-m-d') }}" class="w-full bg-white border border-slate-200 bg-white border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm" required>
+                            <div class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2.5 text-slate-600 text-sm cursor-not-allowed">
+                                Otomatis saat disimpan
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-1">Tanggal dan jam dicatat otomatis oleh sistem.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-500 mb-1">Tenor (Hari)</label>

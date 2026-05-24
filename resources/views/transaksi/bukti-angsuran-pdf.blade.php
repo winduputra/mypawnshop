@@ -58,11 +58,12 @@
         .check-box { width: 14px; height: 14px; border: 1px solid #000; text-align: center; font-size: 9px; line-height: 12px; padding: 0; }
         .check-spacer { width: 8px; }
         .check-label { padding-left: 2px; }
-        .signature { width: 100%; border-collapse: collapse; margin: 4px auto 0; }
-        .signature td { width: 50%; vertical-align: top; padding: 0; word-wrap: break-word; }
+        .signature { width: 100%; border-collapse: collapse; margin: 22px auto 0; }
+        .signature td { width: 50%; vertical-align: top; padding: 0 12px 0 0; word-wrap: break-word; }
         .signature-right { text-align: left; }
-        .signature-space { height: 82px; }
-        .signature-line { display: inline-block; min-width: 140px; font-weight: bold; text-decoration: underline; }
+        .signature-heading { height: 44px; }
+        .signature-space { height: 92px; }
+        .signature-line { display: inline-block; width: 190px; font-weight: bold; text-decoration: underline; }
         .footer { margin-top: 18px; text-align: center; font-size: 8.5px; }
     </style>
 </head>
@@ -165,14 +166,16 @@
         <table class="signature">
             <tr>
                 <td>
-                    <div>Nasabah Peminjam,</div>
+                    <div class="signature-heading">Nasabah Peminjam,</div>
                     <div class="signature-space"></div>
                     <div class="signature-line">{{ $nasabah->nama ?? '-' }}</div>
                 </td>
                 <td class="signature-right">
-                    <div>Hormat kami,</div>
-                    <div>HARMANS GADAI SYARIAH</div>
-                    <div>Penerima,</div>
+                    <div class="signature-heading">
+                        Hormat kami,<br>
+                        HARMANS GADAI SYARIAH<br>
+                        Penerima,
+                    </div>
                     <div class="signature-space"></div>
                     <div class="signature-line">{{ $angsuran->user->name ?? $transaksi->user->name ?? '-' }}</div>
                 </td>

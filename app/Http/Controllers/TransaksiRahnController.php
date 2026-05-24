@@ -83,7 +83,6 @@ class TransaksiRahnController extends Controller
             'nasabah_id' => 'required|exists:nasabah,id',
             'barang_id' => 'required|exists:barang,id',
             'pinjaman_items' => 'required|array',
-            'tanggal_transaksi' => 'required|date',
             'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman,bayar_pelunasan',
         ]);
 
@@ -110,7 +109,7 @@ class TransaksiRahnController extends Controller
             $biaya_penitipan = $ujrah;
             $sisa_pinjaman = $total_pinjaman;
 
-            $tanggal_trx = Carbon::parse($request->tanggal_transaksi);
+            $tanggal_trx = now();
             $jatuh_tempo = $tanggal_trx->copy()->addDays($tenor);
             $batas_lelang = $jatuh_tempo->copy()->addDays(7);
 
@@ -121,7 +120,7 @@ class TransaksiRahnController extends Controller
                 'no_register_akad' => null, // assigned on approval
                 'nasabah_id' => $request->nasabah_id,
                 'user_id' => Auth::id(),
-                'tanggal_transaksi' => $request->tanggal_transaksi,
+                'tanggal_transaksi' => $tanggal_trx,
                 'total_taksiran' => $total_taksiran,
                 'total_pinjaman' => $total_pinjaman,
                 'sisa_pinjaman' => $sisa_pinjaman,
@@ -435,7 +434,6 @@ class TransaksiRahnController extends Controller
         }
 
         $request->validate([
-            'tanggal_transaksi' => 'required|date',
             'metode_pembayaran' => 'required|in:bayar_dimuka,potong_pinjaman,bayar_pelunasan',
             'total_pinjaman' => 'required|numeric|min:1',
         ]);
@@ -448,10 +446,9 @@ class TransaksiRahnController extends Controller
             $pinjaman = min((float) $request->total_pinjaman, $maxPinjaman);
             $ujrah = $barang->taksiran * (Setting::getIjarahPersen() / 100);
             $biayaAdmin = Setting::getBiayaAdmin($barang->kategori);
-            $tanggalTrx = Carbon::parse($request->tanggal_transaksi);
+            $tanggalTrx = Carbon::parse($transaksi->tanggal_transaksi);
 
             $transaksi->update([
-                'tanggal_transaksi' => $request->tanggal_transaksi,
                 'total_taksiran' => $barang->taksiran,
                 'total_pinjaman' => $pinjaman,
                 'sisa_pinjaman' => $pinjaman,

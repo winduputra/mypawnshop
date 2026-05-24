@@ -276,13 +276,13 @@
         <tr>
             <td>
                 <div>Pihak Pertama (Peminjam),</div>
-                <div class="sign-space-left"></div>
+                <div class="materai-text">Materai Rp.10.000</div>
+                <div class="materai-space"></div>
                 <div class="sign-line sign-name">{{ $nasabah->nama ?? '-' }}</div>
             </td>
             <td>
                 <div>Pihak Kedua (Penerima Gadai),</div>
-                <div class="materai-text">Materai Rp10.000</div>
-                <div class="materai-space"></div>
+                <div class="sign-space-left"></div>
                 <div class="sign-line sign-name">{{ $petugas }}</div>
             </td>
         </tr>

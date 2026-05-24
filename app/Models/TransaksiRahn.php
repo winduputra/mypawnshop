@@ -17,6 +17,7 @@ class TransaksiRahn extends Model
     ];
 
     protected $casts = [
+        'tanggal_transaksi' => 'datetime',
         'approved_at' => 'datetime',
     ];
 

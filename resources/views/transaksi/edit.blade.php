@@ -35,7 +35,10 @@
             @method('PUT')
             <div>
                 <label class="block text-sm text-slate-500 mb-2">Tanggal Transaksi</label>
-                <input type="date" name="tanggal_transaksi" value="{{ old('tanggal_transaksi', $transaksi->tanggal_transaksi) }}" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800" required>
+                <div class="w-full bg-slate-100 border border-slate-300 rounded-xl px-4 py-3 text-slate-600 cursor-not-allowed">
+                    {{ $transaksi->tanggal_transaksi->format('d/m/Y H:i') }}
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Tanggal dan jam transaksi dikunci otomatis oleh sistem.</p>
             </div>
             <div>
                 <label class="block text-sm text-slate-500 mb-2">Jumlah Pinjaman</label>
