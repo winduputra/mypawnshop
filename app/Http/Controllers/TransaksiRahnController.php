@@ -571,6 +571,25 @@ class TransaksiRahnController extends Controller
         return $pdf->download('Bukti-Angsuran-' . $transaksi->no_transaksi . '-' . $angsuranKe . '.pdf');
     }
 
+    public function destroyDummy(TransaksiRahn $transaksi)
+    {
+        if (auth()->user()->role !== 'superadmin') {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($transaksi) {
+            $transaksi->histories()->delete();
+            $transaksi->detailTransaksi()->delete();
+            $transaksi->angsuran()->delete();
+            $transaksi->perpanjangan()->delete();
+            $transaksi->pelunasan()->delete();
+            $transaksi->lelang()->delete();
+            $transaksi->delete();
+        });
+
+        return redirect()->route('transaksi.index')->with('success', 'Dummy transaksi dan seluruh data laporan terkait berhasil dihapus.');
+    }
+
     private function generateNoRegisterAkad(): string
     {
         $today = now()->format('Ymd');

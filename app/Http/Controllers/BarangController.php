@@ -7,6 +7,7 @@ use App\Models\Barang;
 use App\Models\Nasabah;
 use App\Models\FotoBarang;
 use App\Models\Cabang;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -188,5 +189,28 @@ class BarangController extends Controller
         
         $barang->delete();
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus.');
+    }
+
+    public function destroyDummy(Barang $barang)
+    {
+        if (auth()->user()->role !== 'superadmin') {
+            abort(403);
+        }
+
+        if ($barang->detailTransaksi()->exists()) {
+            return back()->with('error', 'Barang tidak dapat dihapus karena sudah terhubung dengan transaksi.');
+        }
+
+        DB::transaction(function () use ($barang) {
+            $barang->load('fotoBarang');
+
+            foreach ($barang->fotoBarang as $foto) {
+                Storage::disk('public')->delete($foto->foto_path);
+            }
+
+            $barang->delete();
+        });
+
+        return redirect()->route('barang.index')->with('success', 'Dummy barang dan foto tersimpan berhasil dihapus.');
     }
 }

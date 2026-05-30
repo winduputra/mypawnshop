@@ -55,6 +55,12 @@
             <button onclick="toggleModal('modalPelunasan')" class="bg-[#cf9e50] hover:bg-[#b48842] text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all px-5 py-2 rounded-xl text-sm">Lunasi</button>
             @endif
             @endif
+            @if(auth()->user()->role === 'superadmin')
+            <form action="{{ route('transaksi.dummy-destroy', $transaksi) }}" method="POST" onsubmit="return confirm('Hapus dummy transaksi ini? Transaksi, detail, angsuran, perpanjangan, pelunasan, lelang, histori, dan baris laporan terkait akan dihapus.');">
+                @csrf @method('DELETE')
+                <button type="submit" class="bg-white border border-rose-200 px-4 py-2 rounded-xl text-sm text-rose-500 hover:bg-rose-50 transition">Hapus Dummy</button>
+            </form>
+            @endif
         </div>
     </div>
 

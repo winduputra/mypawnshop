@@ -2,15 +2,26 @@
 @section('header_title', 'Detail Barang Jaminan')
 @section('content')
 <div class="max-w-6xl mx-auto">
-    <div class="mb-6 flex justify-between items-center">
+    <div class="mb-6 flex flex-wrap justify-between items-center gap-3">
         <a href="{{ route('barang.index') }}" class="text-sky-400 hover:text-sky-300 text-sm flex items-center">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             Kembali ke Daftar
         </a>
-        <a href="{{ route('barang.edit', $barang) }}" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10 flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            Edit Barang
-        </a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('barang.edit', $barang) }}" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm text-sky-400 hover:bg-white/10 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Edit Barang
+            </a>
+            @if(auth()->user()->role === 'superadmin')
+            <form action="{{ route('barang.dummy-destroy', $barang) }}" method="POST" onsubmit="return confirm('Hapus dummy barang ini? Foto tersimpan akan dihapus dari storage public. Barang yang sudah terhubung transaksi akan ditolak.');">
+                @csrf @method('DELETE')
+                <button type="submit" class="bg-white border border-rose-200 px-4 py-2 rounded-xl text-sm text-rose-500 hover:bg-rose-50 flex items-center transition">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12V16.5zm8.25 2.25L13.5 4.5a1.5 1.5 0 00-3 0L3.75 18.75A1.5 1.5 0 005.25 21h13.5a1.5 1.5 0 001.5-2.25z"/></svg>
+                    Hapus Dummy
+                </button>
+            </form>
+            @endif
+        </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- LEFT --}}

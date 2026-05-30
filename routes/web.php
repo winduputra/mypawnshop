@@ -25,6 +25,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('nasabah', NasabahController::class);
     Route::resource('barang', BarangController::class);
     Route::resource('transaksi', TransaksiRahnController::class);
+    Route::delete('barang/{barang}/dummy-destroy', [BarangController::class, 'destroyDummy'])->name('barang.dummy-destroy');
+    Route::delete('transaksi/{transaksi}/dummy-destroy', [TransaksiRahnController::class, 'destroyDummy'])->name('transaksi.dummy-destroy');
 
     // Extensions & Settlement
     Route::post('transaksi/{transaksi}/perpanjang', [PerpanjanganController::class, 'store'])->name('transaksi.perpanjang');

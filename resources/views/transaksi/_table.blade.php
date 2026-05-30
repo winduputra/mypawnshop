@@ -54,6 +54,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                 </a>
+                @if(auth()->user()->role === 'superadmin')
+                <form action="{{ route('transaksi.dummy-destroy', $trx) }}" method="POST" class="inline" onsubmit="return confirm('Hapus dummy transaksi ini? Transaksi, detail, angsuran, perpanjangan, pelunasan, lelang, histori, dan baris laporan terkait akan dihapus.');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-rose-500 hover:text-rose-400 p-1 transition" title="Hapus Dummy Transaksi">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12V16.5zm8.25 2.25L13.5 4.5a1.5 1.5 0 00-3 0L3.75 18.75A1.5 1.5 0 005.25 21h13.5a1.5 1.5 0 001.5-2.25z" /></svg>
+                    </button>
+                </form>
+                @endif
             </td>
         </tr>
         @empty
